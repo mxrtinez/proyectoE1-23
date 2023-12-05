@@ -1,10 +1,10 @@
 # Specifying an R environment with a runtime.txt file
 
-Jupyter+R: [![Binder](http://mybinder.org/badge_logo.svg)](http://mybinder.org/v2/gh/binder-examples/r/master?filepath=index.ipynb)
+Jupyter+R: [![Binder](http://mybinder.org/badge_logo.svg)](http://mybinder.org/v2/gh/mxrtinez/proyectoE1-23/master?filepath=index.ipynb)
 
-RStudio: [![Binder](http://mybinder.org/badge_logo.svg)](http://mybinder.org/v2/gh/binder-examples/r/master?urlpath=rstudio)
+RStudio: [![Binder](http://mybinder.org/badge_logo.svg)](http://mybinder.org/v2/gh/mxrtinez/proyectoE1-23/master?urlpath=rstudio)
 
-RShiny: [![Binder](http://mybinder.org/badge_logo.svg)](http://mybinder.org/v2/gh/binder-examples/r/master?urlpath=shiny/bus-dashboard/)
+RShiny: [![Binder](http://mybinder.org/badge_logo.svg)](http://mybinder.org/v2/gh/mxrtinez/proyectoE1-23/master?urlpath=shiny/bus-dashboard/)
 
 Binder supports using R and RStudio, with libraries pinned to a specific
 snapshot on [packagemanager.rstudio.com](https://packagemanager.rstudio.com/client/#/).
@@ -66,11 +66,11 @@ the URL of our original repository from GitHub or Figshare, etc.
 
 - For the RStudio environment, we must add the following at the end of the URL: `?urlpath=rstudio`
 
-  - Example: http://mybinder.org/v2/gh/binder-examples/r/master?urlpath=rstudio
+  - Example: http://mybinder.org/v2/gh/mxrtinez/proyectoE1-23/master?urlpath=rstudio
 
 - For the Shiny app environment, we must add the following at the end of the URL: `?urlpath=shiny`. In this case, we
 also have to note that if the Shiny app files are located in a folder, this folder should be specified in the URL,
 after a slash. We would then also have to put in a trailing slash at the end of the URL, and to avoid spaces in the
 name of the repository, placing instead a hyphen (the reason is that spaces are converted to `%20`).
 
-  - Example: http://mybinder.org/v2/gh/binder-examples/r/master?urlpath=shiny/bus-dashboard/
+  - Example: http://mybinder.org/v2/gh/mxrtinez/proyectoE1-23/master?urlpath=shiny/bus-dashboard/
