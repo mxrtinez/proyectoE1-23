@@ -7,13 +7,12 @@ yearD <- 2013
 
 while(yearD <= 2023){
   sheet <- yearD - 2012
-  print(yearD)
+  print(sheet)
   dataset <- readxl::read_xlsx("./datosRaw/datosRawprecios_por_mes_2013_2023.xlsx", sheet = sheet)
-  columnDate <- lubridate::ymd(paste(yearD, "-", 2, "-", "01", sep = ""))
   for (i in 1:nrow(dataset)) {
-    for (m in 5:14) {
+    for (m in 5:16) {
       newRow <- data.frame(
-        Date <- columnDate,
+        Date <- lubridate::ymd(paste(yearD, "-", m-4, "-", "01", sep = "")),
         Grupo <- dataset$Grupo[i][[1]],
         Producto <- dataset$Producto[i][[1]],
         Ciudad <- dataset$Ciudad[i][[1]],

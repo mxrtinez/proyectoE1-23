@@ -9,16 +9,14 @@ library(patchwork)
 library(skimr)
 
 # Leer datos (convertidos de xlsx por hojas)
-datos <- read.csv("newData.csv", header = TRUE)
+datos <- read.csv("datosRaw/newData.csv", header = TRUE)
 
 # Convertir fecha de char a date
 datos$Fecha <- as.Date(datos$Date)
 
 
 ##########################################################################
-##########################################################################
 ###################     Datos de productos      ##########################
-##########################################################################
 ##########################################################################
 
 # Mirar inicio y final de la tabla
@@ -26,8 +24,7 @@ head(datos) # para ver mas valores: head(aux, 10)
 tail(datos)
 #View(datos)
 names(datos)
-class(datos$Date)
-datos$Date <- as.Date(datos$Date, format = "%Y-%m/%d")
+datos$Date <- as.Date(datos$Date, format = "%Y-%m-%d")
 length(datos$Date)
 unique(datos$Grupo)
 unique(datos$Ciudad)
@@ -71,9 +68,7 @@ barplot(tabledata2, horiz = FALSE, las = 2)
 hist(datos$Precio)
 
 ##########################################################################
-##########################################################################
 ###################     Datos de productos      ##########################
-##########################################################################
 ##########################################################################
 
 abastecimiento <- readxl::read_xlsx("./datosRaw/Series-historicas-abastecimiento-2013-2023.xlsx", sheet = 3, range = "A10:AL139")
@@ -90,7 +85,7 @@ length(abastecimiento$Fecha)
 # Check for "missing values"
 is.na(abastecimiento)
 sum(is.na(abastecimiento))
-abastecimiento <- replace(abastecimiento, is.na(abastecimiento), 0)
+#abastecimiento <- replace(abastecimiento, is.na(abastecimiento), 0)
 
 # Summary Statistics
 summary(abastecimiento)
@@ -109,7 +104,7 @@ dim(skim(abastecimiento))
 ##########################################################################
 
 # Histogramming abastecimiento total pais
-hist(abastecimiento$`TOTAL ABASTECIMIENTO`)
+hist(abastecimiento$`TOTAL ABASTECIMIENTO`, main = "Histograma de abastecimiento total")
 
 # Abastecimiento 
 plot(abastecimiento$Fecha, abastecimiento$`TOTAL ABASTECIMIENTO`, type = "l", main = "Historico de abastecimiento total", xlab = "Fecha", ylab = "Toneladas")
