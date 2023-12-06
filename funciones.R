@@ -1,5 +1,25 @@
 ## FUNCIONES ###
 
+# Carcular variabilidad
+normalizar_producto_tiempo <- function(nombre_producto){
+  # Promedio mensual del precio a nivel regional
+  promedios_regional <- datos_agro %>%
+    filter(Producto == nombre_producto) %>%
+    group_by(Fecha) %>%
+    summarize(Promedio = mean(Precio))
+  
+  # Normalizar los precios para tener valores entre 0 y 1, mas faciles de comparar
+  promedios_regional_normalizado <- promedios_regional %>%
+    group_by(year = lubridate::year(Fecha)) %>%
+    mutate(Promedio_normalizado = (Promedio / (max(Promedio, na.rm = TRUE))))
+  
+  return(promedios_regional_normalizado)
+}
+
+
+
+
+
 promedioCiudades <- function(nombre_producto){
   p1 <- datos_agro %>%
     filter(Producto == nombre_producto) %>%
@@ -102,6 +122,8 @@ producto_comportamiento_tiempo <- function(nombre_producto){
   
   return(p)
 }
+
+
 
 # visualizar el comportamiento de varios productos
 productos_comportamiento_tiempo <- function(p1, nombre_producto){

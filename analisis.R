@@ -29,9 +29,9 @@ months <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Ago
 #################3#####     Datos productos     ##########################
 ##########################################################################
 
-nombre_archivo <- "datosRawprecios_all.xlsx"
+nombre_archivo <- "datosRaw/precios_historico_productos_2013-2023_modificado.xlsx"
 
-file = paste(folder, '/', nombre_archivo, sep="")
+file = nombre_archivo
 sheets <- excel_sheets(file)
 datos <- readxl::read_xlsx(file, sheet = sheets[1])
 
@@ -207,7 +207,29 @@ unique(datos_agro$Producto)
 ################################################################################################
 ###################     Busqueda de productos con mayor y menor variabilidad     ################
 #################################################################################################
+i = "Papa criolla limpia"
+promedios_regional_normalizado = normalizar_producto_tiempo(i)
+sd = sd(promedios_regional_normalizado$Promedio_normalizado, na.rm = TRUE)
+h <- ggplot() + 
+  geom_line(data = promedios_regional_normalizado, aes(x = Fecha, y = Promedio_normalizado), linewidth = 1) +
+  labs(title = paste("Precio 2013-2023: ", i, "\n Desviación estándar: ", sd ),
+       y="Precio")
+print(h)
 
+
+# para un producto que casi no cambia
+i = "Fresa"
+promedios_regional_normalizado = normalizar_producto_tiempo(i)
+sd = sd(promedios_regional_normalizado$Promedio_normalizado, na.rm = TRUE)
+h <- ggplot() + 
+  geom_line(data = promedios_regional_normalizado, aes(x = Fecha, y = Promedio_normalizado), linewidth = 1) +
+  labs(title = paste("Precio 2013-2023: ", i, "\n Desviación estándar: ", sd ),
+       y="Precio")
+print(h)
+
+
+# para todo
+# Calcular desviacion estandar de los precios normalizados
 df <- data.frame()
 
 # Normalizar daticos agro por producto 
@@ -216,16 +238,8 @@ for (i in unique(datos_agro$Producto)) {
   # Ver por año cuantas ciudades tienen ese producto en promedio
   numciudades <- promedioCiudades(i)
   
-  # Promedio mensual del precio a nivel regional
-  promedios_regional <- datos_agro %>%
-    filter(Producto == i) %>%
-    group_by(Fecha) %>%
-    summarize(Promedio = mean(Precio))
-  
-  # Normalizar los precios para tener valores entre 0 y 1, mas faciles de comparar
-    promedios_regional_normalizado <- promedios_regional %>%
-      group_by(year = lubridate::year(Fecha)) %>%
-      mutate(Promedio_normalizado = (Promedio / (max(Promedio, na.rm = TRUE))))
+  # Obtener promedios regionales normalizados
+  promedios_regional_normalizado = normalizar_producto_tiempo(i) 
     
   # Calcular desviacion estandar de los precios normalizados
   r <- data.frame(
@@ -234,12 +248,19 @@ for (i in unique(datos_agro$Producto)) {
     Sd = sd(promedios_regional_normalizado$Promedio_normalizado, na.rm = TRUE),
     Num_ciudades = numciudades
   )
-  
-  #Agregar el coeficiente de variacion
-  r$CV = r$Sd / r$Promedio_normalizado
   # Agregar fila al dataframe de resultado
   df <- bind_rows(df, r)
 }
+
+ggplot(df, aes(x = Producto, y = Num_ciudades )) +
+  geom_bar(stat = "identity", fill = "skyblue", width = 0.7) +
+  labs(
+    title = "Numero de ciudades promedio que tienen un producto",
+    x = "Producto",
+    y = "Numero de ciudades"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 # Hay varios productos que solo se registran en 3-5 ciudades
 # Buscamos los que esten en por lo menos 10
@@ -250,14 +271,23 @@ df <- filter(df, Num_ciudades > 10 )
 n = 5
 menor_sd <- (arrange(df,Sd))
 mayor_sd <- (arrange(df,desc(Sd)))
-head(menor_sd, 5)
-head(mayor_sd,5)
 
-# TODO: hacer un diagrama de barras para representar esto mas bonito
-# TODO: revisar que tal es el CV como medida ¿ es mejor que solo Sd?
+ggplot(df, aes(x = Producto, y = Sd )) +
+  geom_bar(stat = "identity", fill = "skyblue", width = 0.7) +
+  labs(
+    title = "Desviación estandar del precio a lo largo del tiempo",
+    x = "Producto",
+    y = "Desviación estandar"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
+kable(head(menor_sd, 5), format = "markdown",  caption = "Productos con menor desviación estándar")
 selectos_min <- filter(datos_agro, Producto %in%  menor_sd[0:n,]$Producto)
+
+
+kable(head(mayor_sd,5), format = "markdown", caption = "Productos con mayor desviación estándar")
 selectos_max <- filter(datos_agro, Producto %in%  mayor_sd[0:n,]$Producto)
 
 
@@ -265,19 +295,20 @@ selectos_max <- filter(datos_agro, Producto %in%  mayor_sd[0:n,]$Producto)
 plot_min <- graficar_tiempo_producto(selectos_min, "Menor desviacion")
 plot_mas <- graficar_tiempo_producto(selectos_max, "Mayor desviacion")
 
-
-##########################################################################
-###################     Graficas para productos encontrados     ##########
-##########################################################################
 # para graficar en una sola figura
 plot_list <- list(plot_min, plot_mas)
 final_plot <- wrap_plots(plot_list, ncol = 2)
 print(final_plot)
 
+
 # Comparar con comportamiento de inflacion
 comparar_inflacion(selectos_min, "selectos min")
 comparar_inflacion(selectos_max, "selectos max")
 
+
+##########################################################################
+###################     Graficas para productos encontrados     ##########
+##########################################################################
 
 # Graficar por cada producto
 for(i in unique(selectos_min$Producto)) {
@@ -375,5 +406,8 @@ ggplot(insumosNorm, aes(x = Fecha, y = total_normalizado)) +
   geom_smooth(data = producto2Norm, aes(x = Fecha, y = precio_normalizado), color = "green") +
   geom_smooth(data = producto3Norm, aes(x = Fecha, y = precio_normalizado), color = "red") +
   labs(title = "Nitrogeno Socorro [Azul] vs Precio de Producto (Suavizado) [Rojo]", x = "Fecha", y = "Y")
+
+
+
 
 
