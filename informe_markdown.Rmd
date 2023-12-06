@@ -59,6 +59,23 @@ La seres históricas de insumos tienen dos distintos sets de variables, ya que l
 ### Datos de abastecimiento
 Las series históricas de abastecimiento tienen 38 variables, la fecha en la cual se tomó la medición, el total de abastecimiento, la variación mensual del abastecimiento, la variación anual del abastecimiento, dos variables de empalme, y de la número 7 a la 38 son distintos mercados en donde se tiene el valor de abastecimiento.
 
+## Librerías usadas
+
+A continuación un resumen de las librerías usadas y su propósito de uso
+
+| Librería     | Propósito |
+| ------------ | --------- |
+| RColorBrewer | Generación de paletas de colores |
+| readxl       | Lectura de archivos Excel |
+| ggplot2      | Creación de gráficos estadísticos |
+| tidyverse    | Conjunto de herramientas para el análisis de datos |
+| cowplot      | Combinación de gráficos |
+| lubridate    | Manejo de fechas y horas |
+| patchwork    | Combinación de gráficos |
+| tidyr        | Transformación de datos |
+| dplyr        | Selección, manipulación y agregación de datos |
+| lubridate    | Manejo de fechas y horas |
+| skimr        | Exploración de datos |
 
 ## Explorando los datos
 acá para abajo el código de análisis
