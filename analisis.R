@@ -1,25 +1,32 @@
-library("readxl") # para leer archivos Excel
-library("ggplot2") # para graficar
-library("tidyverse") # para manejo de datos
-library(dplyr) # para hacer joins
-library(tidyr) # para reshape la tabla
-library(RColorBrewer) # colorcitos de los plots
-#install.packages("patchwork") # para poder combinar grafucis
-library(patchwork) # para plotear multiples graficos en una figura
-#install.packages("lubridate")
-library(lubridate)
-#install.packages("cowplot")
-library(cowplot) # tambien para hacer multiples graficos pero diferente
+##########################################################################
+#########        Cargar librerias, variables y funciones    ##############
+##########################################################################
+
+library("readxl") # para leer archivos Excel #install.packages("readxl")
+library("ggplot2") # para graficar  #install.packages("ggplot2")
+library("tidyverse") # para manejo de datos #install.packages("tidyverse") 
+library("dplyr") # para hacer joins #install.packages(dplyr)
+library("tidyr") # para reshape la tabla #install.packages(tidyr)
+library("RColorBrewer") # colorcitos de los plots #install.packages(RColorBrewer)
+library("patchwork") # para plotear multiples graficos en una figura #install.packages("patchwork") 
+library("lubridate") #install.packages("lubridate")
+library("cowplot") # tambien para hacer multiples graficos pero diferente #install.packages("cowplot")
+library("skimr") #install.packages("skimr")
+
+# Cargar funciones 
+source("funciones.R")
 
 # algunas constantes
-folder <- "D:/UIS SEXTO SEMESTRE/ESTADISTICA/proyecto/"
+folder <- "datosRaw"
 abreviaciones_meses <- c(
   "ene", "feb", "mar", "abr", "may", "jun",
   "jul", "ago", "sep", "oct", "nov", "dic"
 )
+months <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
+            "Septiembre", "Octubre", "Noviembre", "Diciembre")
 
 ##########################################################################
-###################     Datos productos     ##########################
+#################3#####     Datos productos     ##########################
 ##########################################################################
 
 nombre_archivo <- "datosRawprecios_all.xlsx"
@@ -27,12 +34,14 @@ nombre_archivo <- "datosRawprecios_all.xlsx"
 file = paste(folder, '/', nombre_archivo, sep="")
 sheets <- excel_sheets(file)
 datos <- readxl::read_xlsx(file, sheet = sheets[1])
-datos
+
+head(datos)
 
 ##########################################################################
 ###################     Datos inflación     ##############################
 ##########################################################################
-nombre_archivo <- "datosRaw/1.1.INF_Serie historica Meta de inflacion IQY.xlsx"
+
+nombre_archivo <- "1.1.INF_Serie historica Meta de inflacion IQY.xlsx"
 file = paste(folder, '/', nombre_archivo, sep="")
 sheets <- excel_sheets(file)
 datos_inflacion <- readxl::read_xlsx(file, skip=7,sheet = sheets[1])
@@ -47,57 +56,53 @@ datos_inflacion <- datos_inflacion %>%
 datos_inflacion <-  datos_inflacion %>%
   filter(year(Fecha) >= 2013)
 
-datos_inflacion
+head(datos_inflacion)
 
 ##########################################################################
 ###################     Datos de insumos      ##########################
 ##########################################################################
 
-insumos <- readxl::read_xlsx(paste(folder, "datosRaw/series-historicas-insumos-2021-2023.xlsx", sep = ""), sheet = 5, range = "A9:I61985")
+insumos2023 <- readxl::read_xlsx(paste(folder, "/series-historicas-insumos-2021-2023.xlsx", sep = ""), sheet = 5, range = "A9:I61985")
+insumos2020 <- readxl::read_xlsx(paste(folder, "/series-historicas-insumos-2013-2020.xlsx", sep = ""), sheet = 5, range = "A10:I99845")
+
+insumos <- rbind.data.frame(insumos2020, insumos2023)
 
 # Mirar inicio y final de la tabla
 head(insumos) # para ver mas valores: head(aux, 10)
 tail(insumos)
-#View(datos)
 names(insumos)
-class(insumos$Mes)
 
 # Convertir Columna mes a número de mes
-months <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
-            "Septiembre", "Octubre", "Noviembre", "Diciembre")
 insumos$Mes <- match(insumos$Mes, months)
 
 # Crear columan con fecha
 insumos$Fecha <- paste(insumos$Año, insumos$Mes, '1', sep = "-")
-class(insumos$Mes)
 insumos$Fecha <- as.Date(insumos$Fecha, format = "%Y-%m-%d")
-class(insumos$Mes)
-
 
 # Check for "missing values"
-is.na(insumos)
 sum(is.na(insumos))
+#is.na(insumos)
 
 # Summary Statistics
-summary(insumos)
+#summary(insumos)
 summary(insumos$'Precio promedio') # Para una columna específica
 
 # Summary (SKIM) Statistics
 skim(insumos)
-skim(insumos$'Precio promedio')
+#skim(insumos$'Precio promedio')
 
 # Using tidyverse
-glimpse(skim(insumos))
-dim(skim(insumos))
+#glimpse(skim(insumos))
+#dim(skim(insumos))
 
+# Ver los productos del dataset, los departamentos y municipios
 unique(insumos$`Nombre del producto`)
-unique(insumos$`Nombre departamento`)
+#unique(insumos$`Nombre departamento`)
 unique(insumos$`Nombre municipio`)
 
 departamentos_andinos <- c("Antioquia", "Boyacá", "Cundinamarca", "Norte de Santander", "Santander", 
-                           "Tolima", "Huila", "Caldas", "Quindío", "Risaralda")
+                           "Tolima", "Huila", "Caldas", "Quindío", "Risaralda", "Nariño")
 
-nrow(insumos)
 # cambiando nombres de columnas a algo mas amigable
 insumos$Departamento <- insumos$`Nombre departamento`
 insumos <- insumos[, !names(insumos) %in% 'Nombre departamento']
@@ -109,14 +114,14 @@ insumos <- insumos[, !names(insumos) %in% 'Nombre del producto']
 insumos_andino <- insumos %>%
   filter(Departamento %in% departamentos_andinos)
 
-#TODO: falta juntar los datos de los insumos con los de 2013-2021
-
 nrow(insumos_andino)
+
 ##########################################################################
 ###################     Selección y filtrado de datos     ################
 ##########################################################################
 # Seleccionar los datos con los que vamos a trabajar
 # Como son muchos datos nos enfocaremos en una region del pais
+
 ciudades_andinas <- c("Bucaramanga", "Cúcuta", "Ibagué", "Manizales", "Medellín", 
                       "Santa Bárbara (Antioquia)", "Tunja", "Bogotá", "La Ceja (Antioquia)", 
                       "Popayán", "Rionegro (Antioquia)", "Armenia", "Duitama (Boyacá)", 
@@ -316,25 +321,62 @@ head(top_correlations)
 
 #TODO:  hacer unas grafiquitas que sea en un mismo plot el precio del producto y el de los 3-5 insumos en el tiempo
 
+##########################################################################
+###################     SOME PLOTS     ##########################
+##########################################################################
+names(insumos)
+unique(insumos$Insumo)
+
+# Usar Nitrogeno = "Nitromag 21-0-0-7" en santander
+nitrogeno <- filter(insumos, Insumo == "Nitromag 21-0-0-7" & Departamento == "Santander")
+
+hist(nitrogeno$`Precio promedio`, main = "Histograma Precio promedio")
+
+# Historico 
+plot(nitrogeno$Fecha, nitrogeno$`Precio promedio`, type = "l", main = "Historico de Nitrogeno en Socorro", xlab = "Fecha", ylab = "Precio")
+
+# Historico suavizado
+ggplot(nitrogeno, aes(x = Fecha, y = `Precio promedio`)) +
+  geom_smooth(method = "loess", formula = y ~ x) +
+  labs(title = "Historico de Nitrogeno Scorro (Suavizado)", x = "Fecha", y = "Precio")
+
+# Seleccionar un producto
+producto <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Lulo")
+producto2 <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Fresa")
+producto3 <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Papa criolla limpia")
+
+plot(producto$Fecha, producto$Precio, type = "l", main = "Precio historico del producto", xlab = "Fecha", ylab = "Pesos")
+
+ggplot(producto, aes(x = Fecha, y = Precio)) +
+  geom_smooth(method = "loess", formula = y ~ x, color = "orange") +
+  geom_smooth(data = producto2, aes(x = Fecha, y = Precio), color = "green") +
+  geom_smooth(data = producto3, aes(x = Fecha, y = Precio), color = "red") +
+  labs(title = "Precio historico del producto (Suavizado)", x = "Fecha", y = "Total")
+
+# Normalizar los valores para graficar 
+productoNorm <- producto %>%
+  mutate(precio_normalizado = scale(Precio))
+producto2Norm <- producto2 %>%
+  mutate(precio_normalizado = scale(Precio))
+producto3Norm <- producto3 %>%
+  mutate(precio_normalizado = scale(Precio))
+insumosNorm <- nitrogeno %>%
+  mutate(total_normalizado = scale(`Precio promedio`))
+
+productoNorm$Fecha <- as.Date(productoNorm$Fecha, format = "%Y-%m-%d")
+producto2Norm$Fecha <- as.Date(producto2Norm$Fecha, format = "%Y-%m-%d")
+producto3Norm$Fecha <- as.Date(producto3Norm$Fecha, format = "%Y-%m-%d")
+
+
+ggplot(insumosNorm, aes(x = Fecha, y = total_normalizado)) +
+  geom_smooth(method = "loess", formula = y ~ x) +
+  geom_smooth(data = productoNorm, aes(x = Fecha, y = precio_normalizado), color = "orange") +
+  geom_smooth(data = producto2Norm, aes(x = Fecha, y = precio_normalizado), color = "green") +
+  geom_smooth(data = producto3Norm, aes(x = Fecha, y = precio_normalizado), color = "red") +
+  labs(title = "Nitrogeno Socorro [Azul] vs Precio de Producto (Suavizado) [Rojo]", x = "Fecha", y = "Y")
+
+
 
 
 
 #TODO: de los productos que salgan investigarlos en internet, su presencia en la region andina. Tener mas info
-
-##########################################################################
-###################     Funciones     ####################################
-##########################################################################
-
-
-promedioCiudades <- function(nombre_producto){
-  p1 <- datos_agro %>%
-    filter(Producto == nombre_producto) %>%
-    group_by(year = lubridate::year(Fecha)) %>%
-    mutate(numCiudades = length(unique(Ciudad)))
-  p1 <- p1 %>%
-    group_by(year(Fecha)) %>%
-    summarize(promedioCiudadAño = mean(numCiudades))
-
-  return(  mean(p1$promedioCiudadAño))
-
-}
