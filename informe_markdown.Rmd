@@ -6,21 +6,17 @@ html_document:
   number_sections: yes
   code_folding: show
   
-title: "Proyecto estadística"
-author: "Paula Uzcategui"
-date: "r Sys.Date()"
+title: "Proyecto: Análisis de sensibilidad de del precio de productos agrícolas a factores externos"
 output:
   html_document:
     df_print: paged
-title: "R Notebook"
 lang: "es-ES"
 ---
 
-# Análisis de sensibilidad de del precio de productos agrícolas a factores externos
+# Introducción
 
-## Introducción
+### **La problemática**
 
-**La problemática**
 En Colombia los productores del campo se enfrentan a retos complejos como el cambio climático, la interrupción de suministros y la competencia externa.
 Factores como la inflación, el aumento de precios de insumos, transporte, almacenamiento, fenómenos climáticos y malos negocios con intermediarios terminan afectando al productor [2] (Portafolio)
 El periodico portafolio reporta que hace 18 meses producir una hectárea de papa costaba alrededor de \$22 millones y los valores de hoy están cercanos a los \$40 millones por hectárea.
@@ -29,43 +25,267 @@ Además de esto los pequeños y medianos productores tienen que competir con imp
 
 A partir de esta problemática consideramos que es fundamental conocer las tendencias del mercado y los factores que afectan a los cultivos, para ayudar a los productores a tomar desiciones informadas que les permitan ser competitivos en el mercado. 
 
-**¿Cómo abordaremos el problema?**
+### **¿Cómo abordaremos el problema?**
+
 Utilizaremos datos históricos y actuales de los precios de diferentes productos agricolas en diferentes centros mayoristas del pais sacados de la página del DANE. Enfocandonos principalmente en la **región andina** de Colombia, buscaremos aquellos productos que se pueden cultivar en esta región y analizaremos su variabilidad a lo largo del tiempo, con el objetivo de identificar los productos con mayor y menor variabilidad, es decir aquellos con los que probablemente se debería ser más cuidadosos y aquellos que posiblemente sería buena idea considerar. Además contrastaremos nuestros hallazgos con factores externos como la inflación, los precios de diferentes insumos y los patrones de precios que siguen estos productos anualmente, tal vez debido al clima.
 
-**Técnica**
+### **Técnica**
+
 Para analizar los datos utilizaremos principalmente las medidas de tendencia central estadística como la media y la desviación estándar para medir la variabilidad de los productos a lo largo del tiempo. 
 A su vez usaremos la correlación para buscar posibles relaciones entre insumos y los productos.
 
-**Ayudar a los productores**
+### **Ayudar a los productores**
+
 El objetivo de nuestro proyecto es poder ayudar a los productores del campo a tomar desiciones informadas acerca de los cultivos basado en datos reales. 
 
+```{r setup, include=FALSE}
+#Librerias
+library("readxl") # para leer archivos Excel
+library("ggplot2") # para graficar
+library("tidyverse") # para manejo de datos
+library(dplyr) # para hacer joins
+library(tidyr) # para reshape la tabla
+library(RColorBrewer) # colorcitos de los plots
+#install.packages("patchwork") # para poder combinar grafucis
+library(patchwork) # para plotear multiples graficos en una figura
+#install.packages("lubridate")
+library(lubridate)
+#install.packages("cowplot")
+library(cowplot) # tambien para hacer multiples graficos pero diferente
+library(skimr) # ver los summary mas bonito
+#install.packages("kableExtra")
+library(kableExtra) # mostrar tablas bonitas
+library(knitr)
+library(DT)           # for printing nice HTML output tables
+#install.packages("DT")
 
-## Los datos
+script_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
+setwd(script_dir)
 
-### Datos productos
-```{r, echo=FALSE}
-
+# Mapeo de ciudades andinas con su respectivo departamento (gracias chatgpt4)
+ciudad_a_departamento <- c("Bucaramanga" = "Santander",
+                           "Cúcuta" = "Norte de Santander",
+                           "Ibagué" = "Tolima",
+                           "Manizales" = "Caldas",
+                           "Medellín" = "Antioquia",
+                           "Santa Bárbara (Antioquia)" = "Antioquia",
+                           "Tunja" = "Boyacá",
+                           "Bogotá" = "Cundinamarca",
+                           "La Ceja (Antioquia)" = "Antioquia",
+                           "Popayán" = "Cauca",
+                           "Rionegro (Antioquia)" = "Antioquia",
+                           "Armenia" = "Quindío",
+                           "Duitama (Boyacá)" = "Boyacá",
+                           "Marinilla (Antioquia)" = "Antioquia",
+                           "Neiva" = "Huila",
+                           "Peñol (Antioquia)" = "Antioquia",
+                           "Pereira" = "Risaralda",
+                           "San Vicente (Antioquia)" = "Antioquia",
+                           "Sogamoso (Boyacá)" = "Boyacá",
+                           "Sonsón (Antioquia)" = "Antioquia",
+                           "Chiquinquirá (Boyacá)" = "Boyacá",
+                           "La Virginia (Risaralda)" = "Risaralda",
+                           "Palmira (Valle del Cauca)" = "Valle del Cauca",
+                           "El Santuario (Antioquia)" = "Antioquia",
+                           "El Carmen de Viboral (Antioquia)" = "Antioquia",
+                           "La Unión (Antioquia)" = "Antioquia",
+                           "Tibasosa (Boyacá)" = "Boyacá")
 
 ```
-Mostrar que hay -> datos_agro
+# 🗒️​Los datos
+
+
+## Datos históricos de precios de productos
+
+### Fuente de los datos
+( esto es lo que esta haciendo sebastian)
+
+```{r, echo=FALSE}
+nombre_archivo <- "datosRaw/precios_historico_productos_2013-2023_modificado.xlsx"
+# a R le dio por no querrer leer el archivo con el path relativo
+nombre_archivo <- "D:/UIS SEXTO SEMESTRE/ESTADISTICA/proyectoE1-23/datosRaw/precios_historico_productos_2013-2023_modificado.xlsx"
+
+file = nombre_archivo
+sheets <- excel_sheets(file)
+datos <- readxl::read_xlsx(file, sheet = sheets[1])
+
+#se nos paso el grupo de tuberculos tiene un nombre diferente para 2021 
+datos <- datos %>%
+  mutate(Grupo = ifelse(Grupo == "TUBÉRCULOS, RAÍCES Y PLÁTANOS" , "TUBERCULOS, RAICES Y PLATANOS", Grupo))
+
+sum(is.na(datos))
+
+# quitando todos los datos NA
+datos <- na.omit(datos)
+
+# visualizacion de los daticos :3
+
+s = summary(datos)
+unique_counts <- sapply(datos, function(col) length(unique(col)))
+
+kable(s, format = "markdown")
+print("Valores únicos por columna")
+print(unique_counts)
+
+# para que no sufra R solo pongo poquitos
+datos2023 <- filter(datos, year(Fecha) == 2023)
+datatable(datos2023[0:1000,], caption = 'Datos precios productos 2023')
+
+print(paste("Total filas ", nrow(datos)))
+
+```
+###🧹​ Extaracción y limpieza
+
+
+
+### 📊​ Visualización: ¿Qué tenemos?
+
+Ya que hemos eliminado los datos nulos y arreglado los datos podemos ver que tienen.
 ```{r}
+print(names(datos))
+```
+
+Nos aseguramos de que **por cada año hay aproximadamente la misma cantidad de filas**. A excepción de 2023 ya que los datos solo están hasta Octubre.
+
+```{r, echo=FALSE}
+grouped_data <- datos %>%
+  group_by(year = year(Fecha)) %>%
+  summarise(Count = n()) %>%
+  mutate(Percentage = Count / sum(Count) * 100)
+
+grouped_data$year <- as.factor(grouped_data$year)
+
+ggplot(grouped_data, aes(x="", y=Percentage, fill=year, group=year)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme_void() +
+  theme(legend.position = "none") +
+  geom_text(aes(x = 1.6, label = paste(year, '\n', round(Percentage, 2), "%")), 
+            position = position_stack(vjust = 0.5)) +
+  labs(title="Porcentaje de información por año")
+```
+
+Los 8 grupos de productos que tenemos estan distribuidos como se muestra en la figura. Nos centraremos principalmente en los **productos agricolas que represntan alrededor del 60% de los productos en el dataset.**
+
+```{r, echo=FALSE}
+# productos de agricultura
+grupos_select <- c("TUBERCULOS, RAICES Y PLATANOS", "VERDURAS Y HORTALIZAS","FRUTAS", "GRANOS Y CEREALES"   )
+
+# Porcentaje de informacion por cada grupo
+grupos_porcentaje <- datos %>%
+  group_by(Grupo) %>%
+  summarise(Count = n()) %>%
+  mutate(Percentage = Count / sum(Count) * 100)
+
+#Diagrama de pie
+ggplot(grupos_porcentaje, aes(x="", y=Percentage, fill=Grupo)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme_void() +
+  geom_text(aes(x = 1.6,label = paste(round(Percentage, 2), "%")), 
+            position = position_stack(vjust = 0.5)) +
+    labs(title="Porcentaje de información por cada grupo de productos")
+
+agricola <- grupos_porcentaje %>%
+  filter(Grupo %in% grupos_select)
+
+s = sum(agricola$Percentage)
+print(paste("Porcentaje productos agricolas", round(s,2)))
 
 ```
 
+En el grupo de productos agricolas **tenemos estos productos:**
+```{r, echo=FALSE}
+# Ver productos
+# Una tabla con los productos de cada grupo
+datos_agricola <- datos %>%
+  filter(Grupo %in% grupos_select)
 
-###Datos insumos
+unique_values_table <- datos_agricola %>%
+  group_by(Grupo) %>%
+  summarize(Productos = toString(unique(Producto)))
+
+# Imprimir la tabla
+unique_values_table %>%
+  kable("html") %>%
+  kable_styling(full_width = FALSE)
+```
+
+Además revisamos que tenemos muchas ciudades y mercados:
+```{r}
+print(paste("Ciudades : ", length(unique(datos$Ciudad))))
+```
+
+### ✂️​Reducir el tamaño del dataset: Región andina
+
+Ya que tenemos una gran cantidades de datos, **decidimos centrarnos en los principales productos de la región andina de Colombia**. Investigando en internet decidimos quedarnos con los **productos agricolas afines a esta región**. Entonces basaremos nuestro análisis en estos productos:
+
+```{r, echo=FALSE}
+ciudades_andinas <- c("Bucaramanga", "Cúcuta", "Ibagué", "Manizales", "Medellín", 
+                      "Santa Bárbara (Antioquia)", "Tunja", "Bogotá", "La Ceja (Antioquia)", 
+                      "Popayán", "Rionegro (Antioquia)", "Armenia", "Duitama (Boyacá)", 
+                      "Marinilla (Antioquia)", "Neiva", "Peñol (Antioquia)", "Pereira", 
+                      "San Vicente (Antioquia)", "Sogamoso (Boyacá)", "Sonsón (Antioquia)", 
+                      "Chiquinquirá (Boyacá)", "La Virginia (Risaralda)", "Palmira (Valle del Cauca)", 
+                      "El Santuario (Antioquia)", "El Carmen de Viboral (Antioquia)", 
+                      "La Unión (Antioquia)", "Tibasosa (Boyacá)")
+
+# productos que se pueden producir en la region andina colombiana
+productos_list <- c(
+  "Aguacate común", "Aguacate Hass", "Aguacate papelillo", "Curuba",
+  "Curuba redonda", "Feijoa", "Fresa", "Granadilla", "Guayaba agria","Guanábana",
+  "Maracuyá", "Papaya Maradol","Piña gold","Mango común",
+  "Guayaba común", "Guayaba manzana", "Guayaba pera", "Higo",
+  "Lulo", "Mora de Castilla", "Pera nacional", "Tomate de árbol",
+  "Arracacha amarilla", "Arracacha blanca", "Papa capira",
+  "Papa criolla limpia", "Papa criolla sucia", "Papa ICA-Huila",
+  "Papa nevada", "Papa parda pastusa", "Papa Puracé", "Papa rubí",
+  "Papa R-12 negra", "Papa R-12 roja", "Papa sabanera", "Papa San Félix",
+  "Papa suprema", "Papa tocana", "Papa tocarreña", "Papa única",
+  "Plátano comino", "Plátano dominico hartón maduro",
+  "Plátano dominico hartón verde", "Plátano dominico verde",
+  "Plátano guineo", "Plátano hartón maduro", "Plátano hartón verde",
+  "Plátano hartón verde llanero", "Plátano hartón verde venezolano",
+  "Ulluco", "Yuca chirosa", "Yuca criolla", "Yuca ICA",
+  "Yuca llanera", "Maíz amarillo cáscara", "Maíz amarillo trillado", "Maíz blanco trillado",
+  "Fríjol nima calima", "Fríjol radical", "Fríjol Uribe rosado", "Fríjol cargamento rojo", "Fríjol cargamento blanco"
+)
+# Filtrar datos agro
+datos_agro <- datos %>%
+  filter(Ciudad %in% ciudades_andinas & Producto %in% productos_list)
+
+# agregando la columna de departamento
+datos_agro <- datos_agro %>% 
+  mutate(Departamento = ciudad_a_departamento[Ciudad])
+
+
+unique_values_table <- datos_agro %>%
+  group_by(Grupo) %>%
+  summarize(Productos = toString(unique(Producto)))
+
+# Imprimir la tabla
+unique_values_table %>%
+  kable("html") %>%
+  kable_styling(full_width = FALSE)
+
+print(paste("Cantidad de productos: ",length(productos_list)))
+print(paste("Cantidad de mercados ", length(unique(datos_agro$Mercado))))
+```
+
+## Datos históricos de precios de insumos
 ```{r, echo=FALSE}
 
 
 ```
+
+
 Mostrar que hay o como se ven -> insumos_andino
 ```{r}
 
 ```
 
 
-## Explorando los datos
-aqui si pongamos los hallazgos
 
+# 🔍​Análisis
 
 
