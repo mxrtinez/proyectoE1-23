@@ -43,10 +43,12 @@ El objetivo de nuestro proyecto es generar herramientas e información para apoy
 En nuestros análisis utilizamos 2 conjuntos de datos principalmente.
 
 1. DANE (2023) Sistema de Información de Precios y Abastecimiento del Sector Agropecuario (SIPSA). Gobierno de Colombia. Recuperado el 15 de Noviembre de 2023 de: https://www.dane.gov.co/index.php/estadisticas-por-tema/agropecuario/sistema-de-informacion-de-precios-sipsa#precios-mayoristas. 
-2. Datset Inflación total y meta, recuperado del portal del Banco de la República. Recuperado el 15 Nov de 2023 de: https://www.banrep.gov.co/es/estadisticas/inflacion-total-y-meta
+2. DANE (2023) Inflacion total y meta. Banco de la Republica. Recuperado el 15 de Noviembre de 2023 de: https://www.banrep.gov.co/es/estadisticas/inflacion-total-y-meta
 
 
 Datos recolectados por el DANE como parte de la operación SIPSA (Sistema de información de Precios y Abastecimiento) desde el 2012 hasta la fecha. Los conjuntos de datos disponbles son: Precios Mayoristas, Abastecimientos de Alimentos e Insumos y Factores Asociados a la Producción Agropecuaria.
+
+Los datos de la inflación fueron recolectados por el DANE y esto se hizo con el fin de contrastar la inflación de precios al consumidor con la meta de la inflación fijada por la Junta Directiva del Banco de la Republica (JDBR)
 
 ### Datos productos, precios mayoristas
 
@@ -58,6 +60,9 @@ La seres históricas de insumos tienen dos distintos sets de variables, ya que l
 
 ### Datos de abastecimiento
 Las series históricas de abastecimiento tienen 38 variables, la fecha en la cual se tomó la medición, el total de abastecimiento, la variación mensual del abastecimiento, la variación anual del abastecimiento, dos variables de empalme, y de la número 7 a la 38 son distintos mercados en donde se tiene el valor de abastecimiento.
+
+### Datos de inflación
+Las series historicas de la meta e inflacion total al consumidor tienen 5 variables, la fecha de la medición, la inflacion total al consumidor, la meta de inflacion y sus limites inferior y superior.
 
 ## Librerías usadas
 
