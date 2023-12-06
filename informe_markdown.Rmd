@@ -17,7 +17,7 @@ En Colombia la producción agricola se enfrenta a retos complejos como el cambio
 
 Desde esta problemática consideramos que es fundamental conocer las tendencias del mercado y los factores que afectan a los cultivos. En el siguiente proyecto realizamos algunos análisis para ayudar a los productores a tomar desiciones informadas y que estas les permitan ser competitivos en el mercado. 
 
-# Metodología
+# **Metodología**
 
 ## **¿Cómo abordaremos el problema?**
 
@@ -260,7 +260,7 @@ Las series históricas de abastecimiento tienen 38 variables, la fecha en la cua
 
 Inicialmente pensamos en relacionar el precio de los productos con los datos de abastecimiento, sin embargo, al revisar los datos de abastecimeinto notamos que el valor era un dato global. Por esta razón decidimos abandonar los análisis. La exploración inicial la realizamos con el script `scripts/preciosvsBodegas.R` 
 
-##🧹​ **Extaracción y limpieza**
+# 🧹​ **Extaracción y limpieza**
 
 En términos técnicos los datos se encuentran en hojas de cálculo formato Excel, separados por periodos en diferentes archivos y/o hojas de cálculo. Para usarlos y entenderlos de una manera más eficiente, creamos un archivo agrupado, el script usado se encuentra en el directorio `scripts`. Además de esto, fue necesario hacer conversiones en las variables de fechas para poder realizar los análisis, especialmente las gráficas y la busqueda de relaciones. 
 
@@ -375,7 +375,6 @@ productos_list <- c(
   "Plátano guineo", "Plátano hartón maduro", "Plátano hartón verde",
   "Plátano hartón verde llanero", "Plátano hartón verde venezolano",
   "Ulluco", "Yuca chirosa", "Yuca criolla", "Yuca ICA",
-  "Yuca llanera", "Maíz amarillo cáscara", "Maíz amarillo trillado", "Maíz blanco trillado",
   "Fríjol nima calima", "Fríjol radical", "Fríjol Uribe rosado", "Fríjol cargamento rojo", "Fríjol cargamento blanco"
 )
 # Filtrar datos agro
@@ -524,11 +523,11 @@ ggplot(df, aes(x = Producto, y = Num_ciudades )) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
-Filtrando los productos que aparezcan en promedio al menos en 10 ciudades, **buscamos los cinco productos con menor y mayor desviacion estándar.**
+Filtrando los productos que aparezcan en promedio al menos en 10 ciudades, **buscamos los productos con menor y mayor desviacion estándar.**
 ```{r}
 df <- filter(df, Num_ciudades > 10 )
 # Obtenemos n los datos que menos y mas varian
-n = 5
+n = 3
 menor_sd <- (arrange(df,Sd))
 mayor_sd <- (arrange(df,desc(Sd)))
 
@@ -581,6 +580,38 @@ for(i in unique(selectos_max$Producto)) {
 }
 
 ```
+
+## 📈​ **Correlación con inflación**
+
+¿Qué tan afectados se ven los productos por la inflación a nivel nacional?
+Para responder esta pregunta:
+
+1. Calculamos los promedios regionales de los productos para cada mes de 2013-2023
+
+2. Obtenemos la correlación  de cada producto con la tasa de inflación a nivel nacional por mes
+
+```{r}
+d <- rbind(selectos_min, selectos_max)
+
+promedios_regional <- d %>%
+  group_by(Fecha, Producto) %>%
+  summarize(Promedio = mean(Precio))
+
+promedios_regional$Fecha =format(promedios_regional$Fecha, "%Y-%m-%d")
+
+merged_inflacion <- merge(promedios_regional, datos_inflacion, by = c("Fecha"))
+
+correlation_matrix <- merged_inflacion %>%
+  group_by(Producto) %>%
+  summarise(correlation = cor(Promedio, inflacionTotal, use = "complete.obs"))
+
+# Ordenar de mayor a menor
+correlation_matrix <- correlation_matrix %>%
+  arrange(desc(correlation))
+
+kable(correlation_matrix, format = "markdown", caption="Correlación con tasa de inflación a nivel nacional")
+```
+
 
 ## 🖇️​**Correlación con fertilizantes**
 

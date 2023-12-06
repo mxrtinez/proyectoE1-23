@@ -424,7 +424,6 @@ insumos <- insumos[, !names(insumos) %in% 'Nombre del producto']
 insumos_andino <- insumos %>%
   filter(Departamento %in% departamentos_andinos)
 
-#TODO: falta juntar los datos de los insumos con los de 2013-2021
 
 nrow(insumos_andino)
 ##########################################################################

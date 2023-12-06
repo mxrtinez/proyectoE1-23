@@ -325,6 +325,36 @@ for(i in unique(selectos_min$Producto)) {
 
 
 ##########################################################################
+###################     Correlacion con inflacion    #####################
+##########################################################################
+
+d <- rbind(selectos_min, selectos_max)
+d
+
+promedios_regional <- d %>%
+  group_by(Fecha, Producto) %>%
+  summarize(Promedio = mean(Precio))
+
+promedios_regional$Fecha =format(promedios_regional$Fecha, "%Y-%m-%d")
+promedios_regional
+
+datos_inflacion
+merged_inflacion <- merge(promedios_regional, datos_inflacion, by = c("Fecha"))
+
+merged_inflacion
+
+correlation_matrix <- merged_inflacion %>%
+  group_by(Producto) %>%
+  summarise(correlation = cor(Promedio, inflacionTotal, use = "complete.obs"))
+
+# Ordenar de mayor a menor
+correlation_matrix <- correlation_matrix %>%
+  arrange(desc(correlation))
+
+correlation_matrix
+kable(correlation_matrix, format = "markdown")
+
+##########################################################################
 ###################     Correlacion con insumos    #######################
 ##########################################################################
 
