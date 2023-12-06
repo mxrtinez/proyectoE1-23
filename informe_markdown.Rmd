@@ -1,0 +1,71 @@
+---
+html_document:
+  theme: journal
+  toc: yes
+  toc_float: yes
+  number_sections: yes
+  code_folding: show
+  
+title: "Proyecto estadística"
+author: "Paula Uzcategui"
+date: "r Sys.Date()"
+output:
+  html_document:
+    df_print: paged
+title: "R Notebook"
+lang: "es-ES"
+---
+
+# Análisis de sensibilidad de del precio de productos agrícolas a factores externos
+
+## Introducción
+
+**La problemática**
+En Colombia los productores del campo se enfrentan a retos complejos como el cambio climático, la interrupción de suministros y la competencia externa.
+Factores como la inflación, el aumento de precios de insumos, transporte, almacenamiento, fenómenos climáticos y malos negocios con intermediarios terminan afectando al productor [2] (Portafolio)
+El periodico portafolio reporta que hace 18 meses producir una hectárea de papa costaba alrededor de \$22 millones y los valores de hoy están cercanos a los \$40 millones por hectárea.
+
+Además de esto los pequeños y medianos productores tienen que competir con importaciones de paises tecnificados donde la producción es mas barata y los precios más bajos que los nacionales, como sucede en el caso de la papa, donde hoy existe un exceso de oferta en comparación con la demanda[1] (Razon publica)
+
+A partir de esta problemática consideramos que es fundamental conocer las tendencias del mercado y los factores que afectan a los cultivos, para ayudar a los productores a tomar desiciones informadas que les permitan ser competitivos en el mercado. 
+
+**¿Cómo abordaremos el problema?**
+Utilizaremos datos históricos y actuales de los precios de diferentes productos agricolas en diferentes centros mayoristas del pais sacados de la página del DANE. Enfocandonos principalmente en la **región andina** de Colombia, buscaremos aquellos productos que se pueden cultivar en esta región y analizaremos su variabilidad a lo largo del tiempo, con el objetivo de identificar los productos con mayor y menor variabilidad, es decir aquellos con los que probablemente se debería ser más cuidadosos y aquellos que posiblemente sería buena idea considerar. Además contrastaremos nuestros hallazgos con factores externos como la inflación, los precios de diferentes insumos y los patrones de precios que siguen estos productos anualmente, tal vez debido al clima.
+
+**Técnica**
+Para analizar los datos utilizaremos principalmente las medidas de tendencia central estadística como la media y la desviación estándar para medir la variabilidad de los productos a lo largo del tiempo. 
+A su vez usaremos la correlación para buscar posibles relaciones entre insumos y los productos.
+
+**Ayudar a los productores**
+El objetivo de nuestro proyecto es poder ayudar a los productores del campo a tomar desiciones informadas acerca de los cultivos basado en datos reales. 
+
+
+## Los datos
+
+### Datos productos
+```{r, echo=FALSE}
+
+
+```
+Mostrar que hay -> datos_agro
+```{r}
+
+```
+
+
+###Datos insumos
+```{r, echo=FALSE}
+
+
+```
+Mostrar que hay o como se ven -> insumos_andino
+```{r}
+
+```
+
+
+## Explorando los datos
+aqui si pongamos los hallazgos
+
+
+

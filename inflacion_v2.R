@@ -59,7 +59,6 @@ grupos_select <- c("TUBERCULOS, RAICES Y PLATANOS", "TUBÉRCULOS, RAÍCES Y PLÁ
 
 # Seleccionar los datos con los que vamos a trabajar
 # Como son muchos datos nos enfocaremos en una region del pais
-
 datos_agro <- datos %>%
   filter(Grupo %in% grupos_select) %>%
   filter(Ciudad %in% ciudades_andinas)
@@ -69,13 +68,17 @@ datos_agro <- datos_agro %>%
   filter(!grepl("importada|importado", Producto, ignore.case = TRUE))
 
 
-# Display the resulting dataset
-filtered <- datos_agro %>%
-  filter(Producto == "Curuba redonda")
+unique(datos_agro$Ciudad)
+
+mean(papa$Precio)
+sd(papa$Precio)
+
+producto_comportamiento_tiempo("Papa criolla limpia")
+producto_comportamiento_ciudades("Papa criolla limpia",2021)
+papa <- filter(datos_agro, Producto == "Papa criolla limpia")
+graficar_tiempo_producto(papa, "Papa")
 
 
-producto_comportamiento_tiempo("Aguacate papelillo")
-producto_comportamiento_ciudades("Aguacate papelillo",2023)
 
 # filtrar los datos segun esos productos
 producto1 <- datos_agro %>%
@@ -90,7 +93,7 @@ unique(datos_agro$Producto)
 comparar_inflacion(datos_agro, "Datos agricultura")
 
 
-# buscando outliers
+# productos de la region andina
 frutas_list <- c(
  "Aguacate papelillo", "Guanábana",
  "Maracuyá", "Papaya Maradol",
@@ -103,11 +106,23 @@ frutas <- datos_agro %>%
 
 
 comparar_inflacion(frutas, "Datos frutas")
+frutas
 
+
+productos_comportamiento_tiempo(frutas, "Frutas selectas")
 f <- frutas %>%
-  group_by(Fecha) %>%
-  summarise(Promedio_nacional = mean(Precio))
-productos_comportamiento_tiempo(f, "Frutas selectas")
+  filter(year(Fecha) > 2020)
+graficar_tiempo_producto(f, "Frutas selectas")
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -163,9 +178,10 @@ h <- ggplot() +
   labs(title = paste("Tasa inflación", nombre_producto),
        y="Tasa inflación") +
   scale_color_manual(name = "Graph", values = c('Inflacion nacional' = 'black', 'Inflacion producto'='blue'))
-print(h)
+return(h)
 }
 
+# permite graficar varios productos y los agripa
 graficar_tiempo_producto <- function(productosdf, nombre_producto){
   
   productosdf <- productosdf %>%
@@ -173,7 +189,7 @@ graficar_tiempo_producto <- function(productosdf, nombre_producto){
     summarise(Promedio_nacional = mean(Precio))
   
   h <- ggplot() + 
-    geom_line(data = productosdf, aes(x = Fecha, y = Promedio_nacional, group=Producto, color=Producto)) +
+    geom_line(data = productosdf, aes(x = Fecha, y = Promedio_nacional, group=Producto, color=Producto), linewidth = 1) +
     labs(title = paste("Precio producto ", nombre_producto),
          y="Precio")
   return(h)
@@ -193,13 +209,13 @@ producto_comportamiento_tiempo <- function(nombre_producto){
   p <- ggplot(p1, aes(x = month(Fecha, label = TRUE), y = normalizado, group = year(Fecha), color = factor(year(Fecha)))) +
     geom_point() +
     geom_line() +
-    labs(title = paste("Tendencia Precio", nombre_producto, " región andina 2023"),
+    labs(title = paste("Tendencia Precio", nombre_producto, " región andina"),
          y="Precio normalizado",
          x = "Mes") +
     scale_x_discrete(labels = abreviaciones_meses) +  # Display month names
     scale_color_manual(values = rainbow(length(unique(p1$year))))  # Set colors for each year
   
-  print(p)
+  return(p)
 }
 
 # visualizar el comportamiento de varios productos
@@ -215,19 +231,19 @@ productos_comportamiento_tiempo <- function(p1, nombre_producto){
   p <- ggplot(p1, aes(x = month(Fecha, label = TRUE), y = normalizado, group = year(Fecha), color = factor(year(Fecha)))) +
     geom_point() +
     geom_line() +
-    labs(title = paste("Tendencia Precio", nombre_producto, " región andina 2023"),
+    labs(title = paste("Tendencia Precio", nombre_producto, " región andina"),
          y="Precio normalizado",
          x = "Mes") +
     scale_x_discrete(labels = abreviaciones_meses) +  # Display month names
     scale_color_manual(values = rainbow(length(unique(p1$year))))  # Set colors for each year
-  
-  print(p)
+  return(p)
 }
 
 # Ver el comportamiento de un producto en todas las ciudades
 producto_comportamiento_ciudades <- function(nombre_producto, año){
   p1 <- datos_agro %>%
     filter(Producto == nombre_producto) %>%
+    filter(year(Fecha) >= año) %>%
     group_by(mes = month(Fecha), Ciudad) %>%
     summarise(Promedio_mes = mean(Precio))
   
@@ -239,13 +255,12 @@ producto_comportamiento_ciudades <- function(nombre_producto, año){
   p <- ggplot(p2, aes(x = mes, y = normalizado, group = Ciudad, color = Ciudad)) +
     geom_point() +
     geom_line() +
-    labs(title = paste("Tendencia Precio", nombre_producto, " región andina 2023"),
+    labs(title = paste("Tendencia Precio", nombre_producto, " región andina ",año),
          y = "Precio normalizado",
          x = "mes") +
     scale_x_continuous(breaks = 1:12, labels = abreviaciones_meses) +  # Display month names
     scale_color_manual(values = rainbow(length(unique(p2$Ciudad))))  # Set colors for each year
-  
-  print(p)
+  return(p)
 }
 
 
