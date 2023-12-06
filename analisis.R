@@ -1,8 +1,14 @@
+#install.packages("readxl")
 library("readxl") # para leer archivos Excel
+#install.packages("ggplot2")
 library("ggplot2") # para graficar
+#install.packages("tidyverse") 
 library("tidyverse") # para manejo de datos
+#install.packages(dplyr)
 library(dplyr) # para hacer joins
+#install.packages(tidyr)
 library(tidyr) # para reshape la tabla
+#install.packages(RColorBrewer)
 library(RColorBrewer) # colorcitos de los plots
 #install.packages("patchwork") # para poder combinar grafucis
 library(patchwork) # para plotear multiples graficos en una figura
@@ -10,9 +16,14 @@ library(patchwork) # para plotear multiples graficos en una figura
 library(lubridate)
 #install.packages("cowplot")
 library(cowplot) # tambien para hacer multiples graficos pero diferente
+#install.packages("skimr")
+library(skimr)
+
+# Cargar funciones 
+source("funciones.R")
 
 # algunas constantes
-folder <- "D:/UIS SEXTO SEMESTRE/ESTADISTICA/proyecto/"
+folder <- "datosRaw"
 abreviaciones_meses <- c(
   "ene", "feb", "mar", "abr", "may", "jun",
   "jul", "ago", "sep", "oct", "nov", "dic"
@@ -32,7 +43,8 @@ datos
 ##########################################################################
 ###################     Datos inflación     ##############################
 ##########################################################################
-nombre_archivo <- "datosRaw/1.1.INF_Serie historica Meta de inflacion IQY.xlsx"
+
+nombre_archivo <- "1.1.INF_Serie historica Meta de inflacion IQY.xlsx"
 file = paste(folder, '/', nombre_archivo, sep="")
 sheets <- excel_sheets(file)
 datos_inflacion <- readxl::read_xlsx(file, skip=7,sheet = sheets[1])
@@ -53,7 +65,10 @@ datos_inflacion
 ###################     Datos de insumos      ##########################
 ##########################################################################
 
-insumos <- readxl::read_xlsx(paste(folder, "datosRaw/series-historicas-insumos-2021-2023.xlsx", sep = ""), sheet = 5, range = "A9:I61985")
+insumos2023 <- readxl::read_xlsx(paste(folder, "/series-historicas-insumos-2021-2023.xlsx", sep = ""), sheet = 5, range = "A9:I61985")
+insumos2020 <- readxl::read_xlsx(paste(folder, "/series-historicas-insumos-2013-2020.xlsx", sep = ""), sheet = 5, range = "A10:I99845")
+
+insumos <- rbind.data.frame(insumos2020, insumos2023)
 
 # Mirar inicio y final de la tabla
 head(insumos) # para ver mas valores: head(aux, 10)
@@ -69,14 +84,11 @@ insumos$Mes <- match(insumos$Mes, months)
 
 # Crear columan con fecha
 insumos$Fecha <- paste(insumos$Año, insumos$Mes, '1', sep = "-")
-class(insumos$Mes)
 insumos$Fecha <- as.Date(insumos$Fecha, format = "%Y-%m-%d")
-class(insumos$Mes)
-
 
 # Check for "missing values"
-is.na(insumos)
 sum(is.na(insumos))
+#is.na(insumos)
 
 # Summary Statistics
 summary(insumos)
@@ -108,8 +120,6 @@ insumos <- insumos[, !names(insumos) %in% 'Nombre del producto']
 
 insumos_andino <- insumos %>%
   filter(Departamento %in% departamentos_andinos)
-
-#TODO: falta juntar los datos de los insumos con los de 2013-2021
 
 nrow(insumos_andino)
 ##########################################################################
@@ -320,21 +330,3 @@ head(top_correlations)
 
 
 #TODO: de los productos que salgan investigarlos en internet, su presencia en la region andina. Tener mas info
-
-##########################################################################
-###################     Funciones     ####################################
-##########################################################################
-
-
-promedioCiudades <- function(nombre_producto){
-  p1 <- datos_agro %>%
-    filter(Producto == nombre_producto) %>%
-    group_by(year = lubridate::year(Fecha)) %>%
-    mutate(numCiudades = length(unique(Ciudad)))
-  p1 <- p1 %>%
-    group_by(year(Fecha)) %>%
-    summarize(promedioCiudadAño = mean(numCiudades))
-
-  return(  mean(p1$promedioCiudadAño))
-
-}
