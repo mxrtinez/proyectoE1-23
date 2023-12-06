@@ -11,7 +11,7 @@ output:
 lang: "es-ES"
 ---
 
-# **Introducción**
+# Introducción
 
 En Colombia la producción agricola se enfrenta a retos complejos como el cambio climático, la interrupción de suministros y la competencia externa. Factores como la inflación, el aumento de precios de insumos, transporte, almacenamiento, fenómenos climáticos y malos negocios con intermediarios terminan afectando al productor [2] (Portafolio). Por ejemplo, el diario Portafolio reporta que hace 18 meses producir una hectárea de papa costaba alrededor de \$22 millones y los valores de hoy están cercanos a los \$40 millones por hectárea. Además de esto los pequeños y medianos productores tienen que competir con importaciones de paises tecnificados donde la producción es mas económica y eficiente. La papa es un caso importante, es un producto esencial para muchos hogares y hoy existe un exceso de oferta en comparación con la demanda[1] (Razon publica).
 
@@ -19,20 +19,20 @@ Desde esta problemática consideramos que es fundamental conocer las tendencias 
 
 # **Metodología**
 
-## **¿Cómo abordaremos el problema?**
+## ¿Cómo abordaremos el problema?
 
 Utilizaremos datos históricos de los precios de diferentes productos agricolas en diferentes centros mayoristas del pais, nos centramos en los datos producidos por el departamento nacional de estadística, DANE. Elegimos la **región andina** de Colombia para acotar el problema, y también nos enfocamos en  los productos cosechados en esta región. Analizaremos la variabilidad del precio a lo largo del tiempo con el objetivo de identificar los productos más estables, buscando identificar los productos que podrían tener una rentabilidad más segura. Usaremos datos de algunos factores relacionado en la cadena de producción o suministro, como la inflación, los precios de diferentes insumos y los patrones de precios que siguen estos productos anualmente.
 
-## **¿Qué medidas estadísticas usaremos?**
+## ¿Qué medidas estadísticas usaremos?
 
 Para analizar los datos utilizaremos principalmente las medidas de tendencia central estadística como la media y la desviación estándar para medir la variabilidad de los productos a lo largo del tiempo. 
 A su vez usaremos la correlación para buscar posibles relaciones entre insumos y los productos.
 
-## **Nuestro objetivo: Generar recomendaciones para la producción agrícola**
+## Nuestro objetivo: Generar recomendaciones para la producción agrícola
 
 El objetivo de nuestro proyecto es contribuir a la toma de decisiones informadas en la producción agrícola de pequeña o mediana escala, desde el análisis de datos reales de variables relacionadas al precio de los productos.
 
-## 📚 **Librerías y funciones usadas**
+## 📚 Librerías y funciones usadas
 
 A continuación un resumen de las librerías usadas y su propósito.
 
@@ -116,10 +116,10 @@ months <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Ago
             "Septiembre", "Octubre", "Noviembre", "Diciembre")
 ```
 
-# 🗒 **Datos**
+# 🗒 Datos
 
 
-## 💾​ **Fuentes: obtener los datos**
+## 💾​ Fuentes: obtener los datos
 
 En nuestros análisis utilizamos conjuntos de datos de dos fuentes
 
@@ -147,13 +147,13 @@ datos <- readxl::read_xlsx(file, sheet = sheets[1])
 datos <- datos %>%
   mutate(Grupo = ifelse(Grupo == "TUBÉRCULOS, RAÍCES Y PLÁTANOS" , "TUBERCULOS, RAICES Y PLATANOS", Grupo))
 
+print("Número de campos NaN")
 sum(is.na(datos))
 
 # quitando todos los datos NA
 datos <- na.omit(datos)
 
 # visualizacion de los daticos :3
-
 s = summary(datos)
 unique_counts <- sapply(datos, function(col) length(unique(col)))
 
@@ -174,16 +174,18 @@ La seres históricas de insumos tienen dos distintos sets de variables, ya que l
 
 Leemos los archivos y damos un primer vistazo a los datos.
 
-```{r}
+```{r, echo=FALSE}
 insumos2023 <- readxl::read_xlsx(paste(folder, "/series-historicas-insumos-2021-2023.xlsx", sep = ""), sheet = 5, range = "A9:I61985")
 insumos2020 <- readxl::read_xlsx(paste(folder, "/series-historicas-insumos-2013-2020.xlsx", sep = ""), sheet = 5, range = "A10:I99845")
 
 insumos <- rbind.data.frame(insumos2020, insumos2023)
 ```
 
-```{r}
+```{r, echo=FALSE}
 head(insumos) 
 tail(insumos)
+```
+```{r, echo=FALSE}
 print("Variables disponibles")
 names(insumos)
 ```
@@ -248,7 +250,8 @@ insumos <- insumos[, !names(insumos) %in% 'Nombre del producto']
 
 insumos_andino <- insumos %>%
   filter(Departamento %in% departamentos_andinos)
-
+```
+```{r, echo=FALSE}
 print("Número de registros de insumos andinos")
 nrow(insumos_andino)
 
@@ -260,13 +263,15 @@ Las series históricas de abastecimiento tienen 38 variables, la fecha en la cua
 
 Inicialmente pensamos en relacionar el precio de los productos con los datos de abastecimiento, sin embargo, al revisar los datos de abastecimeinto notamos que el valor era un dato global. Por esta razón decidimos abandonar los análisis. La exploración inicial la realizamos con el script `scripts/preciosvsBodegas.R` 
 
-# 🧹​ **Extaracción y limpieza**
+##🧹​ Extaracción y limpieza
 
 En términos técnicos los datos se encuentran en hojas de cálculo formato Excel, separados por periodos en diferentes archivos y/o hojas de cálculo. Para usarlos y entenderlos de una manera más eficiente, creamos un archivo agrupado, el script usado se encuentra en el directorio `scripts`. Además de esto, fue necesario hacer conversiones en las variables de fechas para poder realizar los análisis, especialmente las gráficas y la busqueda de relaciones. 
 
 La exploración inicial la realizamos de manera visual, el tamaño de los archivos nos permitio visualizarlo y entre otras cosas identificar las hojas y rangos en los que se encontraban los datos de interés.
 
-# 📊​ **Visualización: ¿Qué tenemos?**
+# 📊​ Visualización: ¿Qué tenemos?
+
+## Agrupar datos
 
 Ya que hemos eliminado los datos nulos y arreglado los datos podemos ver que tienen.
 ```{r}
@@ -399,6 +404,8 @@ print(paste("Cantidad de productos: ",length(productos_list)))
 print(paste("Cantidad de mercados ", length(unique(datos_agro$Mercado))))
 ```
 
+## Comportamiento de los precios
+
 Graficamos el comportamiento desde 2013 a 2023 de algunos productos buscando patrones anuales probablemente causados por el clima y la temporada en que se producen los productos:
 ```{r}
 p1 = producto_comportamiento_tiempo("Aguacate papelillo")
@@ -407,8 +414,7 @@ print(p1)
 print(p2)
 ```
 
-
-### Datos de insumos
+## Datos de insumos
 
 Variables disponibles
 
@@ -613,7 +619,39 @@ kable(correlation_matrix, format = "markdown", caption="Correlación con tasa de
 ```
 
 
-## 🖇️​**Correlación con fertilizantes**
+## 📈​ **Correlación con inflación**
+
+¿Qué tan afectados se ven los productos por la inflación a nivel nacional?
+Para responder esta pregunta:
+
+1. Calculamos los promedios regionales de los productos para cada mes de 2013-2023
+
+2. Obtenemos la correlación  de cada producto con la tasa de inflación a nivel nacional por mes
+
+```{r}
+d <- rbind(selectos_min, selectos_max)
+
+promedios_regional <- d %>%
+  group_by(Fecha, Producto) %>%
+  summarize(Promedio = mean(Precio))
+
+promedios_regional$Fecha =format(promedios_regional$Fecha, "%Y-%m-%d")
+
+merged_inflacion <- merge(promedios_regional, datos_inflacion, by = c("Fecha"))
+
+correlation_matrix <- merged_inflacion %>%
+  group_by(Producto) %>%
+  summarise(correlation = cor(Promedio, inflacionTotal, use = "complete.obs"))
+
+# Ordenar de mayor a menor
+correlation_matrix <- correlation_matrix %>%
+  arrange(desc(correlation))
+
+kable(correlation_matrix, format = "markdown", caption="Correlación con tasa de inflación a nivel nacional")
+```
+
+
+## 🖇️​Correlación con fertilizantes
 
 Seleccionamos 3 productos para ver su comportamiento respecto al precio del Nitrogeno.
 
