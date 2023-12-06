@@ -6,237 +6,221 @@ html_document:
   number_sections: yes
   code_folding: show
   
-title: "Proyecto estadística"
-author: "Paula Uzcategui | Sebastian Pedraza | Alexander Martinez"
+title: "Proyecto: Análisis de sensibilidad de del precio de productos agrícolas a factores externos"
 output:
   html_document:
     df_print: paged
 lang: "es-ES"
-date: "2023 Dic 06"
 ---
 
-# Análisis de sensibilidad del precio de productos de la canasta familiar a factores externos
+# Introducción
 
-## Introducción
+### **La problemática**
 
-### La problemática
+En Colombia los productores del campo se enfrentan a retos complejos como el cambio climático, la interrupción de suministros y la competencia externa.
+Factores como la inflación, el aumento de precios de insumos, transporte, almacenamiento, fenómenos climáticos y malos negocios con intermediarios terminan afectando al productor [2] (Portafolio)
+El periodico portafolio reporta que hace 18 meses producir una hectárea de papa costaba alrededor de \$22 millones y los valores de hoy están cercanos a los \$40 millones por hectárea.
 
-En Colombia la producción agricola se enfrenta a retos complejos como el cambio climático, la interrupción de suministros y la competencia externa. Factores como la inflación, el aumento de precios de insumos, transporte, almacenamiento, fenómenos climáticos y malos negocios con intermediarios terminan afectando al productor [2] (Portafolio). Por ejemplo, el diario Portafolio reporta que hace 18 meses producir una hectárea de papa costaba alrededor de \$22 millones y los valores de hoy están cercanos a los \$40 millones por hectárea. Además de esto los pequeños y medianos productores tienen que competir con importaciones de paises tecnificados donde la producción es mas económica y eficiente. La papa es un caso importante, es un producto esencial para muchos hogares y hoy existe un exceso de oferta en comparación con la demanda[1] (Razon publica).
+Además de esto los pequeños y medianos productores tienen que competir con importaciones de paises tecnificados donde la producción es mas barata y los precios más bajos que los nacionales, como sucede en el caso de la papa, donde hoy existe un exceso de oferta en comparación con la demanda[1] (Razon publica)
 
-Desde esta problemática consideramos que es fundamental conocer las tendencias del mercado y los factores que afectan a los cultivos. En el siguiente proyecto realizamos algunos análisis para ayudar a los productores a tomar desiciones informadas y que estas les permitan ser competitivos en el mercado. 
+A partir de esta problemática consideramos que es fundamental conocer las tendencias del mercado y los factores que afectan a los cultivos, para ayudar a los productores a tomar desiciones informadas que les permitan ser competitivos en el mercado. 
 
-### ¿Cómo abordaremos el problema?
+### **¿Cómo abordaremos el problema?**
 
-Utilizaremos datos históricos de los precios de diferentes productos agricolas en diferentes centros mayoristas del pais, nos centramos en los datos producidos por el departamento nacional de estadística, DANE. Elegimos la **región andina** de Colombia para acotar el problema, y también nos enfocamos en  los productos cosechados en esta región. Analizaremos la variabilidad del precio a lo largo del tiempo con el objetivo de identificar los productos más estables, buscando identificar los productos que podrían tener una rentabilidad más segura. Usaremos datos de algunos factores relacionado en la cadena de producción o suministro, como la inflación, los precios de diferentes insumos y los patrones de precios que siguen estos productos anualmente.
+Utilizaremos datos históricos y actuales de los precios de diferentes productos agricolas en diferentes centros mayoristas del pais sacados de la página del DANE. Enfocandonos principalmente en la **región andina** de Colombia, buscaremos aquellos productos que se pueden cultivar en esta región y analizaremos su variabilidad a lo largo del tiempo, con el objetivo de identificar los productos con mayor y menor variabilidad, es decir aquellos con los que probablemente se debería ser más cuidadosos y aquellos que posiblemente sería buena idea considerar. Además contrastaremos nuestros hallazgos con factores externos como la inflación, los precios de diferentes insumos y los patrones de precios que siguen estos productos anualmente, tal vez debido al clima.
 
-### Técnica 
+### **Técnica**
 
-Para analizar los datos utilizaremos principalmente las medidas de tendencia central estadística como la media y la desviación estándar. Con estas identificaremos la variabilidad de los productos a lo largo del tiempo. A su vez usaremos la correlación para buscar posibles relaciones entre insumos y productos.
+Para analizar los datos utilizaremos principalmente las medidas de tendencia central estadística como la media y la desviación estándar para medir la variabilidad de los productos a lo largo del tiempo. 
+A su vez usaremos la correlación para buscar posibles relaciones entre insumos y los productos.
 
-### Ayudar a los productores 
+### **Ayudar a los productores**
 
-El objetivo de nuestro proyecto es generar herramientas e información para apoyar la toma de desiciones en la actividades de producción agricola, con un enfoque en la producción de pequeña o mediana escala. 
+El objetivo de nuestro proyecto es poder ayudar a los productores del campo a tomar desiciones informadas acerca de los cultivos basado en datos reales. 
 
-## Librerías usadas
-
-A continuación un resumen de las librerías usadas y su propósito de uso
-
-| Librería     | Propósito |
-| ------------ | --------- |
-| RColorBrewer | Generación de paletas de colores |
-| readxl       | Lectura de archivos Excel |
-| ggplot2      | Creación de gráficos estadísticos |
-| tidyverse    | Conjunto de herramientas para el análisis de datos |
-| cowplot      | Combinación de gráficos |
-| lubridate    | Manejo de fechas y horas |
-| patchwork    | Combinación de gráficos |
-| tidyr        | Transformación de datos |
-| dplyr        | Selección, manipulación y agregación de datos |
-| lubridate    | Manejo de fechas y horas |
-| skimr        | Exploración de datos |
-
-
-Cargamos las librerias.
-
-```{r warning=FALSE}
-library("readxl") # para leer archivos Excel 
-library("ggplot2") # para graficar 
+```{r setup, include=FALSE}
+#Librerias
+library("readxl") # para leer archivos Excel
+library("ggplot2") # para graficar
 library("tidyverse") # para manejo de datos
-library("dplyr") # para hacer joins 
-library("tidyr") # para reshape la tabla 
-library("RColorBrewer") # colorcitos de los plots
-library("patchwork") # para plotear multiples graficos en una figura 
-library("lubridate") 
-library("cowplot") # tambien para hacer multiples graficos pero diferente
-library("skimr") 
+library(dplyr) # para hacer joins
+library(tidyr) # para reshape la tabla
+library(RColorBrewer) # colorcitos de los plots
+#install.packages("patchwork") # para poder combinar grafucis
+library(patchwork) # para plotear multiples graficos en una figura
+#install.packages("lubridate")
+library(lubridate)
+#install.packages("cowplot")
+library(cowplot) # tambien para hacer multiples graficos pero diferente
+library(skimr) # ver los summary mas bonito
+#install.packages("kableExtra")
+library(kableExtra) # mostrar tablas bonitas
+library(knitr)
+library(DT)           # for printing nice HTML output tables
+#install.packages("DT")
+
+script_dir <- dirname(rstudioapi::getActiveDocumentContext()$path)
+setwd(script_dir)
+
+# Mapeo de ciudades andinas con su respectivo departamento (gracias chatgpt4)
+ciudad_a_departamento <- c("Bucaramanga" = "Santander",
+                           "Cúcuta" = "Norte de Santander",
+                           "Ibagué" = "Tolima",
+                           "Manizales" = "Caldas",
+                           "Medellín" = "Antioquia",
+                           "Santa Bárbara (Antioquia)" = "Antioquia",
+                           "Tunja" = "Boyacá",
+                           "Bogotá" = "Cundinamarca",
+                           "La Ceja (Antioquia)" = "Antioquia",
+                           "Popayán" = "Cauca",
+                           "Rionegro (Antioquia)" = "Antioquia",
+                           "Armenia" = "Quindío",
+                           "Duitama (Boyacá)" = "Boyacá",
+                           "Marinilla (Antioquia)" = "Antioquia",
+                           "Neiva" = "Huila",
+                           "Peñol (Antioquia)" = "Antioquia",
+                           "Pereira" = "Risaralda",
+                           "San Vicente (Antioquia)" = "Antioquia",
+                           "Sogamoso (Boyacá)" = "Boyacá",
+                           "Sonsón (Antioquia)" = "Antioquia",
+                           "Chiquinquirá (Boyacá)" = "Boyacá",
+                           "La Virginia (Risaralda)" = "Risaralda",
+                           "Palmira (Valle del Cauca)" = "Valle del Cauca",
+                           "El Santuario (Antioquia)" = "Antioquia",
+                           "El Carmen de Viboral (Antioquia)" = "Antioquia",
+                           "La Unión (Antioquia)" = "Antioquia",
+                           "Tibasosa (Boyacá)" = "Boyacá")
+
 ```
+# 🗒️​Los datos
 
-## Funciones
 
-Explicación funciones
+## Datos históricos de precios de productos
 
-```{r}
-source("funciones.R")
-```
+### Fuente de los datos
+( esto es lo que esta haciendo sebastian)
 
-## Declaración de constantes y diccionarios
+```{r, echo=FALSE}
+nombre_archivo <- "datosRaw/precios_historico_productos_2013-2023_modificado.xlsx"
+# a R le dio por no querrer leer el archivo con el path relativo
+nombre_archivo <- "D:/UIS SEXTO SEMESTRE/ESTADISTICA/proyectoE1-23/datosRaw/precios_historico_productos_2013-2023_modificado.xlsx"
 
-```{r}
-folder <- "datosRaw"
-abreviaciones_meses <- c(
-  "ene", "feb", "mar", "abr", "may", "jun",
-  "jul", "ago", "sep", "oct", "nov", "dic"
-)
-months <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
-            "Septiembre", "Octubre", "Noviembre", "Diciembre")
-```
-
-## Los datos usados
-
-En nuestros análisis utilizamos conjuntos de datos de dos fuentes
-
-1. DANE (2023) Sistema de Información de Precios y Abastecimiento del Sector Agropecuario (SIPSA). Gobierno de Colombia. Recuperado el 15 de Noviembre de 2023 de: https://www.dane.gov.co/index.php/estadisticas-por-tema/agropecuario/sistema-de-informacion-de-precios-sipsa#precios-mayoristas.  
-2. Dataset Inflación total y meta, recuperado del portal del Banco de la República. Recuperado el 15 Nov de 2023 de: https://www.banrep.gov.co/es/estadisticas/inflacion-total-y-meta
-
-### Datos de productos, precios mayoristas
-
-Datos recolectados por el DANE como parte de la operación SIPSA (Sistema de información de Precios y Abastecimiento) desde el 2012 hasta la fecha. Los conjuntos de datos disponbles son: Precios Mayoristas, Abastecimientos de Alimentos e Insumos y Factores Asociados a la Producción Agropecuaria. Estos datos se recolectan mediante entrevista personal con formulario de papel, en el siguiente enlace se encuentra la ficha técnica https://microdatos.dane.gov.co/index.php/catalog/776
-
-Las series históricas de precios mayoristas tienen 5 variables, la fecha en la cual se tomó la medición del precio del producto, el grupo al que pertenece el producto, el producto como tal, el mercado en donde se tomó la medición y el precio promedio por kilogramo.
-
-En términos técnicos los datos se encuentran en hojas de cálculo formato Excel, separados por periodos en diferentes archivos y/o hojas de cálculo. Para usarlos y entenderlos de una manera más eficiente, creamos un archivo agrupado, el script usado se encuentra en el directorio `scripts`. Además de esto, fue necesario hacer conversiones en las variables de fechas para poder realizar los análisis, especialmente las gráficas y la busqueda de relaciones. 
-
-Lectura del archivo.
-
-```{r}
-nombre_archivo <- "datosRawprecios_all.xlsx"
-
-file = paste(folder, '/', nombre_archivo, sep="")
+file = nombre_archivo
 sheets <- excel_sheets(file)
 datos <- readxl::read_xlsx(file, sheet = sheets[1])
-```
 
-Un primer vistazo al conjunto de datos.
+#se nos paso el grupo de tuberculos tiene un nombre diferente para 2021 
+datos <- datos %>%
+  mutate(Grupo = ifelse(Grupo == "TUBÉRCULOS, RAÍCES Y PLÁTANOS" , "TUBERCULOS, RAICES Y PLATANOS", Grupo))
 
-```{r}
-head(datos)
-```
+sum(is.na(datos))
 
-### Datos de insumos
+# quitando todos los datos NA
+datos <- na.omit(datos)
 
-La seres históricas de insumos tienen dos distintos sets de variables, ya que la tercer hoja del documento alberga el listado de los insumos, con 3 variables, el grupo del insumo, el subgrupo y el nombre del insumo/factor. Luego las demás hojas representan cada una un subgrupo ya establecido en la hoja del listado, estas cuentan con 8 variables, el año en que se tomó la medida, el mes, el codigo del departamento, el nombre del departamento, el codigo del municipio, el nombre del municipio, el nombre del producto, la presentación del producto y el precio promedio.
+# visualizacion de los daticos :3
 
-Lectura de los archivos y agrupado de los datos.
+s = summary(datos)
+unique_counts <- sapply(datos, function(col) length(unique(col)))
 
-```{r}
-insumos2023 <- readxl::read_xlsx(paste(folder, "/series-historicas-insumos-2021-2023.xlsx", sep = ""), sheet = 5, range = "A9:I61985")
-insumos2020 <- readxl::read_xlsx(paste(folder, "/series-historicas-insumos-2013-2020.xlsx", sep = ""), sheet = 5, range = "A10:I99845")
+kable(s, format = "markdown")
+print("Valores únicos por columna")
+print(unique_counts)
 
-insumos <- rbind.data.frame(insumos2020, insumos2023)
-```
+# para que no sufra R solo pongo poquitos
+datos2023 <- filter(datos, year(Fecha) == 2023)
+datatable(datos2023[0:1000,], caption = 'Datos precios productos 2023')
 
-Un primer vistazo a los datos
-
-```{r}
-head(insumos) 
-tail(insumos)
-names(insumos)
-```
-
-Convertir la fecha a una nueva columna
-
-```{r}
-# Convertir Columna mes a número de mes
-insumos$Mes <- match(insumos$Mes, months)
-
-# Crear columan con fecha
-insumos$Fecha <- paste(insumos$Año, insumos$Mes, '1', sep = "-")
-insumos$Fecha <- as.Date(insumos$Fecha, format = "%Y-%m-%d")
-```
-
-Buscar campos NaN
-
-```{r}
-sum(is.na(insumos))
-```
-
-Algunos parámetros estadísticos.
-
-```{r}
-summary(insumos$'Precio promedio') # Para una columna específica
-skim(insumos)
-```
-
-Productos presentes en el dataset:
-
-```{r}
-unique(insumos$`Nombre del producto`)
-```
-
-Municipios de los que se tienen datos.
-
-```{r}
-unique(insumos$`Nombre municipio`)
-```
-
-Cambiamos el nombre de las columnas para facilitar el trabajo y filtramos los datos para los departamentos andinos.
-
-```{r}
-departamentos_andinos <- c("Antioquia", "Boyacá", "Cundinamarca", "Norte de Santander", "Santander", 
-                           "Tolima", "Huila", "Caldas", "Quindío", "Risaralda", "Nariño")
-
-# cambiando nombres de columnas a algo mas amigable
-insumos$Departamento <- insumos$`Nombre departamento`
-insumos <- insumos[, !names(insumos) %in% 'Nombre departamento']
-
-insumos$Insumo <- insumos$`Nombre del producto`
-insumos <- insumos[, !names(insumos) %in% 'Nombre del producto']
-
-
-insumos_andino <- insumos %>%
-  filter(Departamento %in% departamentos_andinos)
-
-nrow(insumos_andino)
+print(paste("Total filas ", nrow(datos)))
 
 ```
-
-### Datos de abastecimiento
-
-Las series históricas de abastecimiento tienen 38 variables, la fecha en la cual se tomó la medición, el total de abastecimiento, la variación mensual del abastecimiento, la variación anual del abastecimiento, dos variables de empalme, y de la número 7 a la 38 son distintos mercados en donde se tiene el valor de abastecimiento.
+###🧹​ Extaracción y limpieza
 
 
-### Datos de inflación
 
-Lectura del archivo, conversión de fechas y filtrado para tomar únicamente los datos desde el año 2013.
+### 📊​ Visualización: ¿Qué tenemos?
 
+Ya que hemos eliminado los datos nulos y arreglado los datos podemos ver que tienen.
 ```{r}
-nombre_archivo <- "1.1.INF_Serie historica Meta de inflacion IQY.xlsx"
-file = paste(folder, '/', nombre_archivo, sep="")
-sheets <- excel_sheets(file)
-datos_inflacion <- readxl::read_xlsx(file, skip=7,sheet = sheets[1])
-names(datos_inflacion) <- c("Fecha", "inflacionTotal", "limiteSuperior", "MetadeInflacion","limiteInferior")
-
-datos_inflacion <- datos_inflacion %>%
-  mutate(Fecha = as.Date(sub("(\\d{4})(\\d{2})\\..*", "\\1-\\2-01", Fecha))) %>%
-  select(-limiteSuperior) %>%
-  select(-MetadeInflacion) %>%
-  select(-limiteInferior)
-
-datos_inflacion <-  datos_inflacion %>%
-  filter(year(Fecha) >= 2013)
+print(names(datos))
 ```
 
-Un primer vistazo al conjunto de datos.
+Nos aseguramos de que **por cada año hay aproximadamente la misma cantidad de filas**. A excepción de 2023 ya que los datos solo están hasta Octubre.
 
-```{r}
-head(datos_inflacion)
+```{r, echo=FALSE}
+grouped_data <- datos %>%
+  group_by(year = year(Fecha)) %>%
+  summarise(Count = n()) %>%
+  mutate(Percentage = Count / sum(Count) * 100)
+
+grouped_data$year <- as.factor(grouped_data$year)
+
+ggplot(grouped_data, aes(x="", y=Percentage, fill=year, group=year)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme_void() +
+  theme(legend.position = "none") +
+  geom_text(aes(x = 1.6, label = paste(year, '\n', round(Percentage, 2), "%")), 
+            position = position_stack(vjust = 0.5)) +
+  labs(title="Porcentaje de información por año")
 ```
 
-##     Selección y filtrado de datos   
+Los 8 grupos de productos que tenemos estan distribuidos como se muestra en la figura. Nos centraremos principalmente en los **productos agricolas que represntan alrededor del 60% de los productos en el dataset.**
 
-Seleccionar los datos con los que vamos a trabajar. Nos enfocaremos en la región andina.
+```{r, echo=FALSE}
+# productos de agricultura
+grupos_select <- c("TUBERCULOS, RAICES Y PLATANOS", "VERDURAS Y HORTALIZAS","FRUTAS", "GRANOS Y CEREALES"   )
 
+# Porcentaje de informacion por cada grupo
+grupos_porcentaje <- datos %>%
+  group_by(Grupo) %>%
+  summarise(Count = n()) %>%
+  mutate(Percentage = Count / sum(Count) * 100)
+
+#Diagrama de pie
+ggplot(grupos_porcentaje, aes(x="", y=Percentage, fill=Grupo)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  theme_void() +
+  geom_text(aes(x = 1.6,label = paste(round(Percentage, 2), "%")), 
+            position = position_stack(vjust = 0.5)) +
+    labs(title="Porcentaje de información por cada grupo de productos")
+
+agricola <- grupos_porcentaje %>%
+  filter(Grupo %in% grupos_select)
+
+s = sum(agricola$Percentage)
+print(paste("Porcentaje productos agricolas", round(s,2)))
+
+```
+
+En el grupo de productos agricolas **tenemos estos productos:**
+```{r, echo=FALSE}
+# Ver productos
+# Una tabla con los productos de cada grupo
+datos_agricola <- datos %>%
+  filter(Grupo %in% grupos_select)
+
+unique_values_table <- datos_agricola %>%
+  group_by(Grupo) %>%
+  summarize(Productos = toString(unique(Producto)))
+
+# Imprimir la tabla
+unique_values_table %>%
+  kable("html") %>%
+  kable_styling(full_width = FALSE)
+```
+
+Además revisamos que tenemos muchas ciudades y mercados:
 ```{r}
+print(paste("Ciudades : ", length(unique(datos$Ciudad))))
+```
+
+### ✂️​Reducir el tamaño del dataset: Región andina
+
+Ya que tenemos una gran cantidades de datos, **decidimos centrarnos en los principales productos de la región andina de Colombia**. Investigando en internet decidimos quedarnos con los **productos agricolas afines a esta región**. Entonces basaremos nuestro análisis en estos productos:
+
+```{r, echo=FALSE}
 ciudades_andinas <- c("Bucaramanga", "Cúcuta", "Ibagué", "Manizales", "Medellín", 
                       "Santa Bárbara (Antioquia)", "Tunja", "Bogotá", "La Ceja (Antioquia)", 
                       "Popayán", "Rionegro (Antioquia)", "Armenia", "Duitama (Boyacá)", 
@@ -245,41 +229,6 @@ ciudades_andinas <- c("Bucaramanga", "Cúcuta", "Ibagué", "Manizales", "Medell�
                       "Chiquinquirá (Boyacá)", "La Virginia (Risaralda)", "Palmira (Valle del Cauca)", 
                       "El Santuario (Antioquia)", "El Carmen de Viboral (Antioquia)", 
                       "La Unión (Antioquia)", "Tibasosa (Boyacá)")
-
-# Mapeo de ciudades andinas con su respectivo departamento (gracias chatgpt4)
-ciudad_a_departamento <- c("Bucaramanga" = "Santander",
-                        "Cúcuta" = "Norte de Santander",
-                        "Ibagué" = "Tolima",
-                        "Manizales" = "Caldas",
-                        "Medellín" = "Antioquia",
-                        "Santa Bárbara (Antioquia)" = "Antioquia",
-                        "Tunja" = "Boyacá",
-                        "Bogotá" = "Cundinamarca",
-                        "La Ceja (Antioquia)" = "Antioquia",
-                        "Popayán" = "Cauca",
-                        "Rionegro (Antioquia)" = "Antioquia",
-                        "Armenia" = "Quindío",
-                        "Duitama (Boyacá)" = "Boyacá",
-                        "Marinilla (Antioquia)" = "Antioquia",
-                        "Neiva" = "Huila",
-                        "Peñol (Antioquia)" = "Antioquia",
-                        "Pereira" = "Risaralda",
-                        "San Vicente (Antioquia)" = "Antioquia",
-                        "Sogamoso (Boyacá)" = "Boyacá",
-                        "Sonsón (Antioquia)" = "Antioquia",
-                        "Chiquinquirá (Boyacá)" = "Boyacá",
-                        "La Virginia (Risaralda)" = "Risaralda",
-                        "Palmira (Valle del Cauca)" = "Valle del Cauca",
-                        "El Santuario (Antioquia)" = "Antioquia",
-                        "El Carmen de Viboral (Antioquia)" = "Antioquia",
-                        "La Unión (Antioquia)" = "Antioquia",
-                        "Tibasosa (Boyacá)" = "Boyacá")
-```
-
-Seleccionamos también algunos de los productos de esta región.
-
-```{r}
-grupos_select <- c("TUBERCULOS, RAICES Y PLATANOS", "TUBÉRCULOS, RAÍCES Y PLÁTANOS", "VERDURAS Y HORTALIZAS","FRUTAS", "GRANOS Y CEREALES"   )
 
 # productos que se pueden producir en la region andina colombiana
 productos_list <- c(
@@ -301,215 +250,42 @@ productos_list <- c(
   "Yuca llanera", "Maíz amarillo cáscara", "Maíz amarillo trillado", "Maíz blanco trillado",
   "Fríjol nima calima", "Fríjol radical", "Fríjol Uribe rosado", "Fríjol cargamento rojo", "Fríjol cargamento blanco"
 )
-
-# Quitar todo lo que sea importado
-datos <- datos %>%
-  filter(!grepl("importada|importado", Producto, ignore.case = TRUE))
-
-d <- datos %>%
-  filter(Grupo %in% c("TUBERCULOS, RAICES Y PLATANOS", "TUBÉRCULOS, RAÍCES Y PLÁTANOS", "VERDURAS Y HORTALIZAS") & Ciudad %in% ciudades_andinas )
-         
-unique(d$Producto)
-
 # Filtrar datos agro
 datos_agro <- datos %>%
-  filter(Grupo %in% grupos_select & Ciudad %in% ciudades_andinas & Producto %in% productos_list)
+  filter(Ciudad %in% ciudades_andinas & Producto %in% productos_list)
 
+# agregando la columna de departamento
 datos_agro <- datos_agro %>% 
   mutate(Departamento = ciudad_a_departamento[Ciudad])
+
+
+unique_values_table <- datos_agro %>%
+  group_by(Grupo) %>%
+  summarize(Productos = toString(unique(Producto)))
+
+# Imprimir la tabla
+unique_values_table %>%
+  kable("html") %>%
+  kable_styling(full_width = FALSE)
+
+print(paste("Cantidad de productos: ",length(productos_list)))
+print(paste("Cantidad de mercados ", length(unique(datos_agro$Mercado))))
 ```
 
-El conjunto de datos después de la selección.
+## Datos históricos de precios de insumos
+```{r, echo=FALSE}
 
+
+```
+
+
+Mostrar que hay o como se ven -> insumos_andino
 ```{r}
-head(datos_agro)
-```
-
-Y los productos selecionados
-
-```{r}
-unique(datos_agro$Producto)
-```
-
-##     Busqueda de productos con mayor y menor variabilidad
-
-```{r}
-df <- data.frame()
-
-# Normalizar daticos agro por producto 
-for (i in unique(datos_agro$Producto)) {
-  
-  # Ver por año cuantas ciudades tienen ese producto en promedio
-  numciudades <- promedioCiudades(i)
-  
-  # Promedio mensual del precio a nivel regional
-  promedios_regional <- datos_agro %>%
-    filter(Producto == i) %>%
-    group_by(Fecha) %>%
-    summarize(Promedio = mean(Precio))
-  
-  # Normalizar los precios para tener valores entre 0 y 1, mas faciles de comparar
-    promedios_regional_normalizado <- promedios_regional %>%
-      group_by(year = lubridate::year(Fecha)) %>%
-      mutate(Promedio_normalizado = (Promedio / (max(Promedio, na.rm = TRUE))))
-    
-  # Calcular desviacion estandar de los precios normalizados
-  r <- data.frame(
-    Producto = i,
-    Promedio_normalizado = mean(promedios_regional_normalizado$Promedio_normalizado, na.rm = TRUE),
-    Sd = sd(promedios_regional_normalizado$Promedio_normalizado, na.rm = TRUE),
-    Num_ciudades = numciudades
-  )
-  
-  #Agregar el coeficiente de variacion
-  r$CV = r$Sd / r$Promedio_normalizado
-  # Agregar fila al dataframe de resultado
-  df <- bind_rows(df, r)
-}
-
-# Hay varios productos que solo se registran en 3-5 ciudades
-# Buscamos los que esten en por lo menos 10
-df <- filter(df, Num_ciudades > 10 )
-
-
-# Obtenemos n los datos que menos y mas varian
-n = 5
-menor_sd <- (arrange(df,Sd))
-mayor_sd <- (arrange(df,desc(Sd)))
-head(menor_sd, 5)
-head(mayor_sd,5)
-
-# TODO: hacer un diagrama de barras para representar esto mas bonito
-# TODO: revisar que tal es el CV como medida ¿ es mejor que solo Sd?
-
-
-selectos_min <- filter(datos_agro, Producto %in%  menor_sd[0:n,]$Producto)
-selectos_max <- filter(datos_agro, Producto %in%  mayor_sd[0:n,]$Producto)
-
-
-# Grafica la variacion del precio a lo largo del tiempo
-plot_min <- graficar_tiempo_producto(selectos_min, "Menor desviacion")
-plot_mas <- graficar_tiempo_producto(selectos_max, "Mayor desviacion")
 
 ```
 
 
 
-## Graficas para productos encontrados 
-
-```{r}
-# para graficar en una sola figura
-plot_list <- list(plot_min, plot_mas)
-final_plot <- wrap_plots(plot_list, ncol = 2)
-print(final_plot)
-
-# Comparar con comportamiento de inflacion
-comparar_inflacion(selectos_min, "selectos min")
-comparar_inflacion(selectos_max, "selectos max")
-
-
-# Graficar por cada producto
-for(i in unique(selectos_min$Producto)) {
-  plot1 <- producto_comportamiento_tiempo(i)
-  #plot2 <- producto_comportamiento_ciudades(i, 2022)
-  #plot3 <- comparar_inflacion(filter(datos_agro, Producto == i), i)
-  
-  print(plot1)
-  # Etso es para pintar varios plots en una sola figura :)
-  #combined_plot <- plot_grid(plot1, plot2, plot3, ncol = 1)
-  # Display the combined plot for the current iteration
-  #print(combined_plot)
-}
-```
-
-## Correlacion con insumos
-
-Ver si existe una correlacion entre el precio de los productos y los insumos
-
-```{r}
-# Paso 1: Merge de ambos datasets para solo tener los datos en comun
-merged_data <- merge(selectos_min, insumos_andino, by = c("Departamento", "Fecha"))
-
-# Paso 2: crear la matriz de correlacion 
-correlation_matrix <- merged_data %>%
-  group_by(Producto, Insumo) %>%
-  summarise(correlation = cor(Precio, `Precio promedio`, use = "complete.obs"))
-
-# Ordenar de mayor a menor
-correlation_matrix <- correlation_matrix %>%
-  arrange(Producto, desc(abs(correlation)))
-
-m = 3
-# Filtrar los m primeros insumos de cada producto
-top_correlations <- correlation_matrix %>%
-  group_by(Producto) %>%
-  top_n(m, wt = abs(correlation))
-
-
-head(top_correlations)
-
-```
-> TODO:  hacer unas grafiquitas que sea en un mismo plot el precio del producto y el de los 3-5 insumos en el tiempo
-
-## Insumos
-
-```{r}
-names(insumos)
-unique(insumos$Insumo)
-```
-
-# Usar Nitrogeno = "Nitromag 21-0-0-7" en santander
-nitrogeno <- filter(insumos, Insumo == "Nitromag 21-0-0-7" & Departamento == "Santander")
-
-hist(nitrogeno$`Precio promedio`, main = "Histograma Precio promedio")
-
-# Historico 
-plot(nitrogeno$Fecha, nitrogeno$`Precio promedio`, type = "l", main = "Historico de Nitrogeno en Socorro", xlab = "Fecha", ylab = "Precio")
-
-# Historico suavizado
-ggplot(nitrogeno, aes(x = Fecha, y = `Precio promedio`)) +
-  geom_smooth(method = "loess", formula = y ~ x) +
-  labs(title = "Historico de Nitrogeno Scorro (Suavizado)", x = "Fecha", y = "Precio")
-
-# Seleccionar un producto
-producto <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Lulo")
-producto2 <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Fresa")
-producto3 <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Papa criolla limpia")
-
-plot(producto$Fecha, producto$Precio, type = "l", main = "Precio historico del producto", xlab = "Fecha", ylab = "Pesos")
-
-ggplot(producto, aes(x = Fecha, y = Precio)) +
-  geom_smooth(method = "loess", formula = y ~ x, color = "orange") +
-  geom_smooth(data = producto2, aes(x = Fecha, y = Precio), color = "green") +
-  geom_smooth(data = producto3, aes(x = Fecha, y = Precio), color = "red") +
-  labs(title = "Precio historico del producto (Suavizado)", x = "Fecha", y = "Total")
-
-# Normalizar los valores para graficar 
-productoNorm <- producto %>%
-  mutate(precio_normalizado = scale(Precio))
-producto2Norm <- producto2 %>%
-  mutate(precio_normalizado = scale(Precio))
-producto3Norm <- producto3 %>%
-  mutate(precio_normalizado = scale(Precio))
-insumosNorm <- nitrogeno %>%
-  mutate(total_normalizado = scale(`Precio promedio`))
-
-productoNorm$Fecha <- as.Date(productoNorm$Fecha, format = "%Y-%m-%d")
-producto2Norm$Fecha <- as.Date(producto2Norm$Fecha, format = "%Y-%m-%d")
-producto3Norm$Fecha <- as.Date(producto3Norm$Fecha, format = "%Y-%m-%d")
-
-
-ggplot(insumosNorm, aes(x = Fecha, y = total_normalizado)) +
-  geom_smooth(method = "loess", formula = y ~ x) +
-  geom_smooth(data = productoNorm, aes(x = Fecha, y = precio_normalizado), color = "orange") +
-  geom_smooth(data = producto2Norm, aes(x = Fecha, y = precio_normalizado), color = "green") +
-  geom_smooth(data = producto3Norm, aes(x = Fecha, y = precio_normalizado), color = "red") +
-  labs(title = "Nitrogeno Socorro [Azul] vs Precio de Producto (Suavizado) [Rojo]", x = "Fecha", y = "Y")
-
-
-
-
-
-#TODO: de los productos que salgan investigarlos en internet, su presencia en la region andina. Tener mas info
+# 🔍​Análisis
 
 
