@@ -328,7 +328,7 @@ names(insumos)
 unique(insumos$Insumo)
 
 # Usar Nitrogeno = "Nitromag 21-0-0-7" en santander
-nitrogeno <- filter(insumos, Insumo == "Nitromag 21-0-0-7" & Departamento == "Santander")
+nitrogeno <- filter(insumos, Insumo == "Nitromag 21-0-0-7" & `Nombre municipio` == "Socorro")
 
 hist(nitrogeno$`Precio promedio`, main = "Histograma Precio promedio")
 
@@ -338,14 +338,16 @@ plot(nitrogeno$Fecha, nitrogeno$`Precio promedio`, type = "l", main = "Historico
 # Historico suavizado
 ggplot(nitrogeno, aes(x = Fecha, y = `Precio promedio`)) +
   geom_smooth(method = "loess", formula = y ~ x) +
-  labs(title = "Historico de Nitrogeno Scorro (Suavizado)", x = "Fecha", y = "Precio")
+  labs(title = "Historico de Nitrogeno en Socorro (Suavizado)", x = "Fecha", y = "Precio")
 
 # Seleccionar un producto
 producto <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Lulo")
 producto2 <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Fresa")
 producto3 <- filter(datos, Ciudad == "Bucaramanga" & Mercado == "Bucaramanga, Centroabastos" & Producto == "Papa criolla limpia")
 
-plot(producto$Fecha, producto$Precio, type = "l", main = "Precio historico del producto", xlab = "Fecha", ylab = "Pesos")
+plot(producto$Fecha, producto$Precio, type = "l", main = "Precio historico producto 1", xlab = "Fecha", ylab = "Pesos")
+plot(producto$Fecha, producto2$Precio, type = "l", main = "Precio historico producto 2", xlab = "Fecha", ylab = "Pesos")
+plot(producto$Fecha, producto3$Precio, type = "l", main = "Precio historico producto 3", xlab = "Fecha", ylab = "Pesos")
 
 ggplot(producto, aes(x = Fecha, y = Precio)) +
   geom_smooth(method = "loess", formula = y ~ x, color = "orange") +
@@ -367,7 +369,6 @@ productoNorm$Fecha <- as.Date(productoNorm$Fecha, format = "%Y-%m-%d")
 producto2Norm$Fecha <- as.Date(producto2Norm$Fecha, format = "%Y-%m-%d")
 producto3Norm$Fecha <- as.Date(producto3Norm$Fecha, format = "%Y-%m-%d")
 
-
 ggplot(insumosNorm, aes(x = Fecha, y = total_normalizado)) +
   geom_smooth(method = "loess", formula = y ~ x) +
   geom_smooth(data = productoNorm, aes(x = Fecha, y = precio_normalizado), color = "orange") +
@@ -376,7 +377,3 @@ ggplot(insumosNorm, aes(x = Fecha, y = total_normalizado)) +
   labs(title = "Nitrogeno Socorro [Azul] vs Precio de Producto (Suavizado) [Rojo]", x = "Fecha", y = "Y")
 
 
-
-
-
-#TODO: de los productos que salgan investigarlos en internet, su presencia en la region andina. Tener mas info
