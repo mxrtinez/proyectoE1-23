@@ -1,19 +1,22 @@
 ---
-title: "Proyecto: Análisis de sensibilidad de del precio de productos agrícolas a factores externos"
+title: 'Proyecto: Análisis de sensibilidad de del precio de productos agrícolas a
+  factores externos'
 output:
   html_document:
     df_print: paged
     theme: journal
-    toc: true
-    toc_float: true
-    number_sections: true
+    toc: yes
+    toc_float: yes
+    number_sections: yes
     code_folding: show
+  pdf_document:
+    toc: yes
 lang: "es-ES"
 ---
 
 # Introducción
 
-En Colombia la producción agricola se enfrenta a retos complejos como el cambio climático, la interrupción de suministros y la competencia externa. Factores como la inflación, el aumento de precios de insumos, transporte, almacenamiento, fenómenos climáticos y malos negocios con intermediarios terminan afectando al productor [2] (Portafolio). Por ejemplo, el diario Portafolio reporta que hace 18 meses producir una hectárea de papa costaba alrededor de \$22 millones y los valores de hoy están cercanos a los \$40 millones por hectárea. Además de esto los pequeños y medianos productores tienen que competir con importaciones de paises tecnificados donde la producción es mas económica y eficiente. La papa es un caso importante, es un producto esencial para muchos hogares y hoy existe un exceso de oferta en comparación con la demanda[1] (Razon publica).
+En Colombia la producción agricola se enfrenta a retos complejos como el cambio climático, la interrupción de suministros y la competencia externa. Factores como la inflación, el aumento de precios de insumos, transporte, almacenamiento, fenómenos climáticos y malos negocios con intermediarios terminan afectando al productor. Por ejemplo, el diario Portafolio reporta que hace 18 meses producir una hectárea de papa costaba alrededor de \$22 millones y los valores de hoy están cercanos a los \$40 millones por hectárea. Además de esto los pequeños y medianos productores tienen que competir con importaciones de paises tecnificados donde la producción es más económica y eficiente.
 
 Desde esta problemática consideramos que es fundamental conocer las tendencias del mercado y los factores que afectan a los cultivos. En el siguiente proyecto realizamos algunos análisis para ayudar a los productores a tomar desiciones informadas y que estas les permitan ser competitivos en el mercado. 
 
@@ -21,12 +24,12 @@ Desde esta problemática consideramos que es fundamental conocer las tendencias 
 
 ## ¿Cómo abordaremos el problema?
 
-Utilizaremos datos históricos de los precios de diferentes productos agricolas en diferentes centros mayoristas del pais, nos centramos en los datos producidos por el departamento nacional de estadística, DANE. Elegimos la **región andina** de Colombia para acotar el problema, y también nos enfocamos en  los productos cosechados en esta región. Analizaremos la variabilidad del precio a lo largo del tiempo con el objetivo de identificar los productos más estables, buscando identificar los productos que podrían tener una rentabilidad más segura. Usaremos datos de algunos factores relacionado en la cadena de producción o suministro, como la inflación, los precios de diferentes insumos y los patrones de precios que siguen estos productos anualmente.
+Utilizaremos datos históricos de los precios de productos agrícolas en diferentes centros mayoristas del pais, nos centramos en los datos producidos por el departamento nacional de estadística, DANE. Elegimos la **región andina** de Colombia para acotar el problema, y también nos enfocamos en  los productos cosechados en esta región. Analizaremos la variabilidad del precio a lo largo del tiempo con el objetivo de identificar los productos más estables, buscando identificar aquellos que podrían tener una rentabilidad más segura. Usaremos datos de algunos factores relacionado en la cadena de producción o suministro, como la inflación, los precios de diferentes insumos y los patrones de precios que siguen estos productos anualmente.
 
 ## ¿Qué medidas estadísticas usaremos?
 
 Para analizar los datos utilizaremos principalmente las medidas de tendencia central estadística como la media y la desviación estándar para medir la variabilidad de los productos a lo largo del tiempo. 
-A su vez usaremos la correlación para buscar posibles relaciones entre insumos y los productos.
+A su vez usaremos la correlación para buscar posibles relaciones entre los precios de los insumos, la tasa de inflación a nivel país y los precios de los productos desde 2013 hasta 2023.
 
 ## Nuestro objetivo: Generar recomendaciones para la producción agrícola
 
@@ -71,7 +74,7 @@ library(DT)
 # Cargar funciones 
 source("funciones.R")
 ```
-Definimos algunos parámetros diccionarios y variables para los análisis.
+
 
 ```{r setup, include=FALSE, echo=FALSE}
 folder <- "datosRaw"
@@ -234,7 +237,7 @@ kable(paste(nombres_insumos_municipios, collapse = ", "), format = "markdown", c
 
 ```
 
-Cambiamos el nombre de las columnas para facilitar el trabajo y filtramos los datos para los departamentos andinos.
+Cambiamos el nombre de las columnas para facilitar el trabajo y **filtramos los datos para los departamentos andinos.**
 
 ```{r}
 departamentos_andinos <- c("Antioquia", "Boyacá", "Cundinamarca", "Norte de Santander", "Santander", 
@@ -428,7 +431,9 @@ print(paste("Cantidad de mercados ", length(unique(datos_agro$Mercado))))
 
 ## Comportamiento de los precios mayoristas en la región andina 2013-2023
 
-Graficamos el comportamiento desde 2013 a 2023 de algunos productos buscando patrones anuales probablemente causados por el clima y la temporada en que se producen los productos:
+Graficamos el comportamiento promedio de algunos productos buscando patrones anuales probablemente causados por el clima y la temporada en que se producen.
+En este caso observamos por ejemplo el aguacate papelillo, que es muy consumido en todo el país, la grafica muestra una tendecia muy clara a lo largo del año que se repite desde 2013 a 2023. El mínimo del precio coincide con la temporada de aguacates, cuando la oferta es mayor.
+También graficamos el comportamiento en diferentes ciudades para el año 2023 para ver si se trataba de un comportamiento a nivel nacional. 
 ```{r}
 p1 = producto_comportamiento_tiempo("Aguacate papelillo")
 p2 = producto_comportamiento_ciudades("Aguacate papelillo", 2023)
@@ -512,6 +517,7 @@ h <- ggplot() +
        y="Precio")
 print(h)
 ```
+Obsevamos que la papa, que tiene una mayor desviación estándar presenta fluctuaciones en los precios de gran magnitud a lo largo de todo el tiempo de la muestra, mientras que la fresa que tiene una desviación estándar mucho menor fluctua a lo largo del año en mas o menos la misma magnitud, a excepción de a partir de 2020, lo que podría ser debido a la pandemia. 
 
 Ahora para todos los productos obtuvimos la desviación estándar, sin embargo notamos que habian varios productos que aparecen en muy pocas ciudades lo que nos da un resultado de baja confiabilidad.
 ```{r}
@@ -587,7 +593,9 @@ print(plot_min)
 print(plot_mas)
 ```
 
-Ahora graficando los comportamientos anuales de cada producto
+En los dos últmos gráficos observamos un comportamiento similar al ejemplo de la papa y la fresa que mencionamos anteriormente.
+
+Ahora graficando los comportamientos anuales de cada producto. Estos resultados los analizaremos en la sección de discusión.
 
 ### Productos con menor variabilidad
 ```{r}
@@ -776,12 +784,12 @@ for( i in unique(top_correlations$Producto)){
   producto$Fecha <- as.Date(producto$Fecha)
   insumos_producto$Fecha <- as.Date(insumos_producto$Fecha)
   h <- ggplot() + 
-    geom_line(data = producto, aes(x = Fecha, y = precio_normalizado, color = "Producto")) + 
-    geom_line(data = insumos_producto, aes(x = Fecha, y = precio_normalizado, group = Insumo, color = Insumo)) +
+    geom_smooth(data = producto, aes(x = Fecha, y = precio_normalizado, color = "Producto")) + 
+    geom_smooth(data = insumos_producto, aes(x = Fecha, y = precio_normalizado, group = Insumo, color = Insumo))+
     labs(title = paste("Precio de ",i, " vs Precio insumos"),
          y = "Precio") +
     scale_x_date(date_labels = "%Y-%m-%d")
-  # Print the plot
+
   print(h)
 }
 ```
@@ -794,7 +802,7 @@ Al investigar sobre los cultivo que vimos anteriormente en la región andina de 
 ### Fresa
 - Las fresas se cultivan durante todo el año en Colombia.
 - El principal departamento productor de fresas es Cundinamarca, que representa el 51% del área de cultivo nacional en 2020. Le siguen Boyacá, Cauca y Norte de Santander.
-
+- Su producción se vió afectada después de la pandemia. 
 
 ### Guanábana
 
@@ -821,7 +829,24 @@ Al investigar sobre los cultivo que vimos anteriormente en la región andina de 
 - Las variaciones en el cultivo de papa están influenciadas por factores como el área sembrada y las condiciones climáticas. Las papas son sensibles a las fluctuaciones de temperatura e inundaciones.
 
 
+# Discusión
 
+Comenzando con los productos que presentaron la menor desviación estándar tenemos a la fresa, la guanábanay la guayaba. Observamos que estos son productos que siguen la tendencia de la inflación  con una correlación de 80% aproximadamente. 
+
+En cuanto a su correlación con los fertilizantes observamos que aunque algunas correlaciones parecian seguir la misma tendencia de los precios del producto, otras no daban ese indicio. Por lo que consideramos que este punto fue no concluyente. Creemos que con el conocimiento previo de los fertilizantes que se usan en cada producto este punto podría ofrecer resultados más significativos.
+
+A partir de esto creemos que estos tres productos demuestran un comportamiento relativamente estable en los precios en mercados mayoristas en la región andina, por lo que pueden ser potencialmente buenos productos para una siembra estable y sin muchos riesgos, como también lo corroboramos con la búsqueda en internet.
+ 
+Por otro lado los productos de mayor desviación estándar a lo largo del tiempo resultaron ser diferentes variedades de papa.
+
+Presentaron una correlación de alrededor del 60% con la tasa de inflación nacional, un 20% menos que la de los productos con menor variabilidad. Puede que esto se deba a que hay otros factores que también afectan los precios de estos productos de forma bastante significativa.
+
+En cuento a la correlación con los fertilizantes, también se presentaron correlaciones altas y positivas como era de esperarse, pero sin el conocimiento previo de cuáles fertilizantes se usan para estos cultivos en la región, consideramos que no podemos extraer mucha información de estos valores. 
+
+En síntesis, en estos variedades de papa observamos un comportamiento más inestable a lo largo del año, como también lo indican fuentes externas es un producto muy susceptible a cambios en el clima, lo que podría explicar por quá presentan la mayor variabilidad. Es por esto que, aunque es uno de los cultivos más importantes de Colombia creemos que también es uno que potencialmente tiene más riesgo de perdida para el agricultor.
+
+Otro punto es el comportamiento periodico de los datos, en lo que observamos tanto para los productos con menor y mayor variabilidad, creemos que no tenemos pruebas concluyentes para saber si el periodicidad es una característica propia de uno de otro, ya que ambos grupos presentaban ciclos anuales para algunos productos mientras que para otros no.
+ 
 # Conclusiones
 
 * Estudiar la variación de los precios requiere de un enfoque integral, son muchos los factores que influyen en el precio de estos, desde los precios de los insumos, hasta las decisiones políticas. En este trabajo alcanzamos a abordar algunos, sin embargo, pudimos ver que eventos como la pandemia COVID19 genera unos cambios bruscos en el comportamiento.
@@ -832,3 +857,22 @@ Al investigar sobre los cultivo que vimos anteriormente en la región andina de 
 
 * Además de la importancia de la recolección de los datos, es también importante tener en cuenta su carácter de interés público, celebramos el poder acceder a estos. Sin embargo, las tecnologías usadas para su distribución dificultan los análisis, se debe procurar el uso de formatos abiertos y estructuras la información de una manera más adecuada.
 
+
+# Referencias
+
+
+1. Razon Publica. "Los problemas del sector agrícola colombiano." Visitado 2023-12-6. [https://razonpublica.com/los-problemas-del-sector-agricola-colombiano/](https://razonpublica.com/los-problemas-del-sector-agricola-colombiano/).
+
+2. Semana. "Qué debe tener en cuenta el sector agrícola en 2023: aquí le contamos." Semana Economía, 2022. [https://www.semana.com/economia/macroeconomia/articulo/que-debe-tener-en-cuenta-el-sector-agricola-en-2023-aqui-le-contamos/202206/](https://www.semana.com/economia/macroeconomia/articulo/que-debe-tener-en-cuenta-el-sector-agricola-en-2023-aqui-le-contamos/202206/).
+
+3. Portafolio. "Sector agro en Colombia: así está la situación de la industria en el país." Revista Portafolio. Visitado 2023-12-6. [https://www.portafolio.co/revista-portafolio/sector-agro-en-colombia-asi-esta-la-situacion-de-la-industria-en-el-pais-577013](https://www.portafolio.co/revista-portafolio/sector-agro-en-colombia-asi-esta-la-situacion-de-la-industria-en-el-pais-577013).
+
+4. Ministerio de Agricultura y Desarrollo Rural. "Cifras Sectoriales." 2021. [https://sioc.minagricultura.gov.co/Fresa/Documentos/2021-03-31%20Cifras%20Sectoriales.pdf](https://sioc.minagricultura.gov.co/Fresa/Documentos/2021-03-31%20Cifras%20Sectoriales.pdf).
+
+5. Agronegocios. "Guanábana, un cultivo al que muy pocos se le miden." Visitado 2023-12-6.. [https://www.agronegocios.co/agricultura/guanabana-un-cultivo-al-que-muy-pocos-se-le-miden-2621218](https://www.agronegocios.co/agricultura/guanabana-un-cultivo-al-que-muy-pocos-se-le-miden-2621218).
+
+6. Innovatione. "Guanábana." Visitado 2023-12-6. [https://innovatione.eu/2023/03/01/guanabana/#:~:text=Los%20principales%20departamentos%20productores%20de,mayor%20cabida%20en%20el%20extranjero](https://innovatione.eu/2023/03/01/guanabana/#:~:text=Los%20principales%20departamentos%20productores%20de,mayor%20cabida%20en%20el%20extranjero).
+
+7. Redalyc. "Estado actual de la investigación para el cultivo de guayaba en Colombia"  Agronomía Mesoamericana, 2020 [https://www.redalyc.org/journal/437/43764233031/html/#:~:text=Se%20estima%20que%20la%20producci%C3%B3n,et%20al.%2C%202017](https://www.redalyc.org/journal/437/43764233031/html/#:~:text=Se%20estima%20que%20la%20producci%C3%B3n,et%20al.%2C%202017).
+
+8. Ministerio de Agricultura y Desarrollo Rural. "Cifras Sectoriales." 2020. [https://sioc.minagricultura.gov.co/Guayaba/Documentos/2020-03-31%20Cifras%20Sectoriales.pdf](https://sioc.minagricultura.gov.co/Guayaba/Documentos/2020-03-31%20Cifras%20Sectoriales.pdf).

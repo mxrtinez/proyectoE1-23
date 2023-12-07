@@ -124,6 +124,29 @@ producto_comportamiento_tiempo <- function(nombre_producto){
 }
 
 
+producto_comportamiento_tiempo2 <- function(nombre_producto){
+  p1 <- datos_agro %>%
+    filter(Producto == nombre_producto) %>%
+    group_by(Fecha) %>%
+    summarise(Promedio_nacional = mean(Precio))
+  
+  p1 <- p1 %>%
+    group_by(year = lubridate::year(Fecha)) %>%
+    mutate(normalizado = scale(Promedio_nacional, center = TRUE, scale = TRUE))
+
+    
+  p <-  ggplot(p1, aes(x = month(Fecha, label = TRUE), y = normalizado, group = year(Fecha), color = factor(year(Fecha)))) +
+    geom_smooth(method = "loess", formula = y ~ x) +
+    labs(title = paste("Tendencia Precio", nombre_producto, " región andina"),
+         y="Precio normalizado",
+         x = "Mes") +
+    scale_x_discrete(labels = abreviaciones_meses) +  # Display month names
+    scale_color_manual(values = rainbow(length(unique(p1$year))))  # Set colors for each year
+  
+  return(p)
+}
+
+
 
 # visualizar el comportamiento de varios productos
 productos_comportamiento_tiempo <- function(p1, nombre_producto){

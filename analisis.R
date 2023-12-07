@@ -323,6 +323,23 @@ for(i in unique(selectos_min$Producto)) {
 }
 
 
+for(i in unique(selectos_min$Producto)) {
+  plot1 <- producto_comportamiento_tiempo2(i)
+  #plot2 <- producto_comportamiento_ciudades(i, 2022)
+  #plot3 <- comparar_inflacion(filter(datos_agro, Producto == i), i)
+  
+  print(plot1)
+  # Etso es para pintar varios plots en una sola figura :)
+  #combined_plot <- plot_grid(plot1, plot2, plot3, ncol = 1)
+  # Display the combined plot for the current iteration
+  #print(combined_plot)
+}
+unique(selectos_min$Producto)
+
+plot1 <- producto_comportamiento_tiempo2("Fresa")
+print(plot1)
+
+
 ##########################################################################
 ###################     Correlacion con inflacion    #####################
 
@@ -429,14 +446,16 @@ for( i in unique(top_correlations$Producto)){
   producto$Fecha <- as.Date(producto$Fecha)
   insumos_producto$Fecha <- as.Date(insumos_producto$Fecha)
   h <- ggplot() + 
-    geom_line(data = producto, aes(x = Fecha, y = precio_normalizado, color = "Producto")) + 
-    geom_line(data = insumos_producto, aes(x = Fecha, y = precio_normalizado, group = Insumo, color = Insumo)) +
+    geom_smooth(data = producto, aes(x = Fecha, y = precio_normalizado, color = "Producto")) + 
+    geom_smooth(data = insumos_producto, aes(x = Fecha, y = precio_normalizado, group = Insumo, color = Insumo)) +
     labs(title = paste("Precio de ",i, " vs Precio insumos"),
          y = "Precio") +
     scale_x_date(date_labels = "%Y-%m-%d")
-  # Print the plot
+
   print(h)
 }
+
+
 
 
 ##########################################################################
