@@ -17,7 +17,7 @@ En Colombia la producción agricola se enfrenta a retos complejos como el cambio
 
 Desde esta problemática consideramos que es fundamental conocer las tendencias del mercado y los factores que afectan a los cultivos. En el siguiente proyecto realizamos algunos análisis para ayudar a los productores a tomar desiciones informadas y que estas les permitan ser competitivos en el mercado. 
 
-# **Metodología**
+# Metodología
 
 ## ¿Cómo abordaremos el problema?
 
@@ -211,7 +211,7 @@ Algunos parámetros estadísticos.
 
 ```{r, echo=FALSE}
 summary(insumos$'Precio promedio') # Para una columna específica
-skim(insumos)
+#skim(insumos)
 ```
 
 Productos presentes en el dataset:
@@ -263,7 +263,29 @@ Las series históricas de abastecimiento tienen 38 variables, la fecha en la cua
 
 Inicialmente pensamos en relacionar el precio de los productos con los datos de abastecimiento, sin embargo, al revisar los datos de abastecimeinto notamos que el valor era un dato global. Por esta razón decidimos abandonar los análisis. La exploración inicial la realizamos con el script `scripts/preciosvsBodegas.R` 
 
-##🧹​ Extaracción y limpieza
+## Datos inflación
+
+Obtuvimos los datos de la tasa de inflación a nivel nacional
+```{r}
+nombre_archivo <- "datosRaw/1.1.INF_Serie historica Meta de inflacion IQY.xlsx"
+file = nombre_archivo
+sheets <- excel_sheets(file)
+datos_inflacion <- readxl::read_xlsx(file, skip=7,sheet = sheets[1])
+names(datos_inflacion) <- c("Fecha", "inflacionTotal", "limiteSuperior", "MetadeInflacion","limiteInferior")
+
+datos_inflacion <- datos_inflacion %>%
+  mutate(Fecha = as.Date(sub("(\\d{4})(\\d{2})\\..*", "\\1-\\2-01", Fecha))) %>%
+  select(-limiteSuperior) %>%
+  select(-MetadeInflacion) %>%
+  select(-limiteInferior)
+
+datos_inflacion <-  datos_inflacion %>%
+  filter(year(Fecha) >= 2013)
+
+
+kable(head(datos_inflacion), format = "markdown", caption="Datos inflación")
+```
+## 🧹​ Extracción y limpieza
 
 En términos técnicos los datos se encuentran en hojas de cálculo formato Excel, separados por periodos en diferentes archivos y/o hojas de cálculo. Para usarlos y entenderlos de una manera más eficiente, creamos un archivo agrupado, el script usado se encuentra en el directorio `scripts`. Además de esto, fue necesario hacer conversiones en las variables de fechas para poder realizar los análisis, especialmente las gráficas y la busqueda de relaciones. 
 
@@ -349,7 +371,7 @@ Además revisamos que tenemos muchas ciudades y mercados:
 print(paste("Ciudades : ", length(unique(datos$Ciudad))))
 ```
 
-## ✂️​Reducción el tamaño del dataset: Región andina
+## ✂️​Reducción del tamaño del dataset: Región andina
 
 Ya que tenemos una gran cantidades de datos, **decidimos centrarnos en los principales productos de la región andina de Colombia**. Investigando en internet decidimos quedarnos con los **productos agricolas afines a esta región**. Entonces basaremos nuestro análisis en estos productos:
 
@@ -404,7 +426,7 @@ print(paste("Cantidad de productos: ",length(productos_list)))
 print(paste("Cantidad de mercados ", length(unique(datos_agro$Mercado))))
 ```
 
-## Comportamiento de los precios
+## Comportamiento de los precios mayoristas en la región andina 2013-2023
 
 Graficamos el comportamiento desde 2013 a 2023 de algunos productos buscando patrones anuales probablemente causados por el clima y la temporada en que se producen los productos:
 ```{r}
@@ -414,7 +436,7 @@ print(p1)
 print(p2)
 ```
 
-## Datos de insumos
+## Comportamiento de insumos 2013-2023
 
 Variables disponibles
 
@@ -440,9 +462,9 @@ ggplot(nitrogeno, aes(x = Fecha, y = `Precio promedio`)) +
   labs(title = "Historico de Nitrogeno para Socorro, Santander (Suavizado)", x = "Fecha", y = "Precio")
 ```
 
-# 🔍​ **Análisis**
+# 🔍​ Análisis
 
-## 📉​**Filtrar productos por variabilidad**
+## 📉​ Filtrar productos por variabilidad
 
 Ahora buscaremos los productos con menor y mayor variablidad en precio a lo largo del tiempo. Para esto **escribimos una función para normalizar los precios de un producto respecto al máximo precio de cada año.** 
 ```{r}
@@ -587,7 +609,7 @@ for(i in unique(selectos_max$Producto)) {
 
 ```
 
-## 📈​ **Correlación con inflación**
+## 📈​ Correlación con inflación
 
 ¿Qué tan afectados se ven los productos por la inflación a nivel nacional?
 Para responder esta pregunta:
@@ -617,41 +639,10 @@ correlation_matrix <- correlation_matrix %>%
 
 kable(correlation_matrix, format = "markdown", caption="Correlación con tasa de inflación a nivel nacional")
 ```
-
-
-## 📈​ **Correlación con inflación**
-
-¿Qué tan afectados se ven los productos por la inflación a nivel nacional?
-Para responder esta pregunta:
-
-1. Calculamos los promedios regionales de los productos para cada mes de 2013-2023
-
-2. Obtenemos la correlación  de cada producto con la tasa de inflación a nivel nacional por mes
-
-```{r}
-d <- rbind(selectos_min, selectos_max)
-
-promedios_regional <- d %>%
-  group_by(Fecha, Producto) %>%
-  summarize(Promedio = mean(Precio))
-
-promedios_regional$Fecha =format(promedios_regional$Fecha, "%Y-%m-%d")
-
-merged_inflacion <- merge(promedios_regional, datos_inflacion, by = c("Fecha"))
-
-correlation_matrix <- merged_inflacion %>%
-  group_by(Producto) %>%
-  summarise(correlation = cor(Promedio, inflacionTotal, use = "complete.obs"))
-
-# Ordenar de mayor a menor
-correlation_matrix <- correlation_matrix %>%
-  arrange(desc(correlation))
-
-kable(correlation_matrix, format = "markdown", caption="Correlación con tasa de inflación a nivel nacional")
-```
-
 
 ## 🖇️​Correlación con fertilizantes
+
+### Nitrogeno:
 
 Seleccionamos 3 productos para ver su comportamiento respecto al precio del Nitrogeno.
 
@@ -693,20 +684,43 @@ ggplot(insumosNorm, aes(x = Fecha, y = total_normalizado)) +
   labs(title = "Nitrogeno y Precio de los Productos (Suavizado)", x = "Fecha", y = "Y")
 ```
 
-### Correlación
+### Correlación con otros insumos
 
 Buscamos si existe una correlacion entre el precio de los productos y los insumos
 
 1. Merge de ambos datasets para solo tener los datos en comun
+```{r, echo=FALSE}
+
+# prepara datos de insumos
+grouped_data <- insumos_andino %>%
+  group_by(Insumo) %>%
+  summarise(Count = n()) %>%
+  mutate(Percentage = Count / sum(Count) * 100)
+# hay unos que representasn menos de 0.01 
+b <- filter(grouped_data, Percentage > 0.05)$Insumo
+
+insumos_filter <- filter(insumos, Insumo %in% b)
+insumos_andino_f <- insumos_filter %>%
+  filter(Departamento %in% departamentos_andinos)
+```
 
 ```{r}
-merged_data <- merge(selectos_min, insumos_andino, by = c("Departamento", "Fecha"))
+# Ver si existe una correlacion entre el precio de los productos y los insumos
+# Paso 1: Merge de ambos datasets para solo tener los datos en comun
+d <- rbind(selectos_min, selectos_max)
+
+insumos_andino
+
+merged_data <- merge(d, insumos_andino_f, by = c("Departamento", "Fecha"))
+
+
 
 ```
 
-2. crear la matriz de correlacion y ordenar
+2. Crear la matriz de correlacion y ordenar
 
 ```{r}
+# Paso 2: crear la matriz de correlacion 
 correlation_matrix <- merged_data %>%
   group_by(Producto, Insumo) %>%
   summarise(correlation = cor(Precio, `Precio promedio`, use = "complete.obs"))
@@ -714,21 +728,107 @@ correlation_matrix <- merged_data %>%
 # Ordenar de mayor a menor
 correlation_matrix <- correlation_matrix %>%
   arrange(Producto, desc(abs(correlation)))
+
+
 ```
 
-3. Filtrar los m primeros insumos de cada producto
+3. Por producto buscamos las mayores correlaciones 
 ```{r}
-m = 3
 top_correlations <- correlation_matrix %>%
   group_by(Producto) %>%
-  top_n(m, wt = abs(correlation))
+  top_n(3, wt = abs(correlation)) %>%
+  arrange(Producto, desc(abs(correlation)))
 
-
-head(top_correlations)
+# Print the top correlations
+kable(top_correlations, format = "markdown", caption="Correlación con insumos")
 ```
 
 
+4. Graficando los fertilizantes con los productos
+```{r}
+# Hacer unas grafiquitas que sea en un mismo plot el precio del producto y el de los 3-5 insumos en el tiempo
+promedios_regional <- d %>%
+  group_by(Fecha, Producto) %>%
+  summarize(Promedio = mean(Precio))
+
+promedios_regional$Fecha =format(promedios_regional$Fecha, "%Y-%m-%d")
+
+promedios_regionales_n <- promedios_regional %>%
+  group_by(Producto) %>%
+  mutate(precio_normalizado = scale(Promedio))
+
+
+for( i in unique(top_correlations$Producto)){
+  producto <- promedios_regionales_n %>%
+    filter(Producto == i)
+  
+  nombres_insumos_producto <- filter(top_correlations, Producto == i)$Insumo
+  
+  insumos_producto  <- insumos_andino %>%
+    filter(Insumo %in% nombres_insumos_producto) %>%
+    group_by(Fecha, Insumo) %>%
+    summarize(Promedio = mean(`Precio promedio`))
+  
+  insumos_producto <- insumos_producto %>%
+    group_by(Insumo) %>%
+    mutate(precio_normalizado = scale(Promedio))
+  
+  producto$Fecha <- as.Date(producto$Fecha)
+  insumos_producto$Fecha <- as.Date(insumos_producto$Fecha)
+  h <- ggplot() + 
+    geom_line(data = producto, aes(x = Fecha, y = precio_normalizado, color = "Producto")) + 
+    geom_line(data = insumos_producto, aes(x = Fecha, y = precio_normalizado, group = Insumo, color = Insumo)) +
+    labs(title = paste("Precio de ",i, " vs Precio insumos"),
+         y = "Precio") +
+    scale_x_date(date_labels = "%Y-%m-%d")
+  # Print the plot
+  print(h)
+}
+```
+
+
+## ¿Qué encontramos en internet sobre estos productos?
+
+Al investigar sobre los cultivo que vimos anteriormente en la región andina de Colombia, encontramos lo siguiente:
+
+### Fresa
+- Las fresas se cultivan durante todo el año en Colombia.
+- El principal departamento productor de fresas es Cundinamarca, que representa el 51% del área de cultivo nacional en 2020. Le siguen Boyacá, Cauca y Norte de Santander.
+
+
+### Guanábana
+
+- La guanábana representa el 1.6% de la producción total de frutas en el país.
+- A pesar de su potencial, el cultivo de guanábana está limitado debido a su alto riesgo, requisitos climáticos específicos y rendimiento tardío.
+- Aproximadamente el 25% de la producción de guanábana se exporta, principalmente a Estados Unidos.
+- El cultivo de guanábana requiere un microclima único, lo que lo hace susceptible a riesgos climáticos.
+
+
+### Guayaba
+
+- La industria de la guayaba ha prosperado en regiones específicas de Colombia, incluyendo Santander (municipios de Barbosa y Vélez) y Moniquirá en Boyacá.
+- Los desafíos en el cultivo de guayaba incluyen la sincronización de las cosechas debido a la distribución de la precipitación, lo que resulta en un exceso de oferta y fluctuaciones de precios.
+- La sostenibilidad económica en el cultivo de guayaba se logra mediante estrategias como la modificación del pico de cosecha principal mediante riego, ajuste en el momento de la poda y la agroindustrialización para la producción de productos a base de guayaba.
 
 
 
+### Papa
+
+- A nivel mundial, la papa es el tercer producto alimenticio más importante después del arroz y el trigo. En Colombia, las papas contribuyen significativamente al PIB agropecuario (3.3%).
+- Los costos de producción varían según el departamento debido a dinámicas regionales.
+- El 90% del área de cultivo de papa en Colombia se concentra en cuatro departamentos: Cundinamarca, Boyacá, Nariño y Antioquia.
+- La cadena de suministro de papas genera aproximadamente 264,000 empleos totales en Colombia, con una parte sustancial siendo empleos indirectos.
+- Las variaciones en el cultivo de papa están influenciadas por factores como el área sembrada y las condiciones climáticas. Las papas son sensibles a las fluctuaciones de temperatura e inundaciones.
+
+
+
+# Conclusiones
+
+* Estudiar la variación de los precios requiere de un enfoque integral, son muchos los factores que influyen en el precio de estos, desde los precios de los insumos, hasta las decisiones políticas. En este trabajo alcanzamos a abordar algunos, sin embargo, pudimos ver que eventos como la pandemia COVID19 genera unos cambios bruscos en el comportamiento.
+
+* Aunque encontramos ciertas tendencias y correlaciones muy interesantes, el verdadero valor de estos datos y gráfico cobra sentido cuando son analizados bajo un ojo experto. Además existen relaciones no lineales que no pudimos representar en este trabajo, por lo que nuestros hallazgos podrían representar factores que influyen en los precios de los productos, más no son verdades absolutas.
+
+* La recolección de estos tipos de datos es de gran importancia para el país, estos permiten, además de la estimación de medidas como la inflación, la toma de decisiones basadas en datos reales, actuales y significativos. 
+
+* Además de la importancia de la recolección de los datos, es también importante tener en cuenta su carácter de interés público, celebramos el poder acceder a estos. Sin embargo, las tecnologías usadas para su distribución dificultan los análisis, se debe procurar el uso de formatos abiertos y estructuras la información de una manera más adecuada.
 

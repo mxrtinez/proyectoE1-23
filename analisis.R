@@ -178,8 +178,7 @@ productos_list <- c(
   "Plátano dominico hartón verde", "Plátano dominico verde",
   "Plátano guineo", "Plátano hartón maduro", "Plátano hartón verde",
   "Plátano hartón verde llanero", "Plátano hartón verde venezolano",
-  "Ulluco", "Yuca chirosa", "Yuca criolla", "Yuca ICA",
-  "Yuca llanera", "Maíz amarillo cáscara", "Maíz amarillo trillado", "Maíz blanco trillado",
+  "Yuca chirosa", "Yuca criolla", "Yuca ICA",
   "Fríjol nima calima", "Fríjol radical", "Fríjol Uribe rosado", "Fríjol cargamento rojo", "Fríjol cargamento blanco"
 )
 
@@ -268,7 +267,7 @@ df <- filter(df, Num_ciudades > 10 )
 
 
 # Obtenemos n los datos que menos y mas varian
-n = 5
+n = 3
 menor_sd <- (arrange(df,Sd))
 mayor_sd <- (arrange(df,desc(Sd)))
 
@@ -326,7 +325,6 @@ for(i in unique(selectos_min$Producto)) {
 
 ##########################################################################
 ###################     Correlacion con inflacion    #####################
-##########################################################################
 
 d <- rbind(selectos_min, selectos_max)
 d
@@ -358,9 +356,30 @@ kable(correlation_matrix, format = "markdown")
 ###################     Correlacion con insumos    #######################
 ##########################################################################
 
+
+grouped_data <- insumos_andino %>%
+  group_by(Insumo) %>%
+  summarise(Count = n()) %>%
+  mutate(Percentage = Count / sum(Count) * 100)
+
+mean(grouped_data$Percentage)
+     
+mean(grouped_data$Percentage)
+b <- filter(grouped_data, Percentage > 0.1)$Insumo
+
+insumos_filter <- filter(insumos, Insumo %in% b)
+insumos_andino_f <- insumos_filter %>%
+  filter(Departamento %in% departamentos_andinos)
+
+nrow(insumos_andino_f)
+
 # Ver si existe una correlacion entre el precio de los productos y los insumos
 # Paso 1: Merge de ambos datasets para solo tener los datos en comun
-merged_data <- merge(selectos_min, insumos_andino, by = c("Departamento", "Fecha"))
+d <- rbind(selectos_min, selectos_max)
+
+insumos_andino
+
+merged_data <- merge(d, insumos_andino, by = c("Departamento", "Fecha"))
 
 # Paso 2: crear la matriz de correlacion 
 correlation_matrix <- merged_data %>%
@@ -371,16 +390,54 @@ correlation_matrix <- merged_data %>%
 correlation_matrix <- correlation_matrix %>%
   arrange(Producto, desc(abs(correlation)))
 
-m = 3
-# Filtrar los m primeros insumos de cada producto
+
 top_correlations <- correlation_matrix %>%
   group_by(Producto) %>%
-  top_n(m, wt = abs(correlation))
+  top_n(3, wt = abs(correlation)) %>%
+  arrange(Producto, desc(abs(correlation)))
+
+# Print the top correlations
+print(top_correlations)
+
+# Hacer unas grafiquitas que sea en un mismo plot el precio del producto y el de los 3-5 insumos en el tiempo
+promedios_regional <- d %>%
+  group_by(Fecha, Producto) %>%
+  summarize(Promedio = mean(Precio))
+
+promedios_regional$Fecha =format(promedios_regional$Fecha, "%Y-%m-%d")
+
+promedios_regionales_n <- promedios_regional %>%
+  group_by(Producto) %>%
+  mutate(precio_normalizado = scale(Promedio))
 
 
-head(top_correlations)
+for( i in unique(top_correlations$Producto)){
+  producto <- promedios_regionales_n %>%
+    filter(Producto == i)
+  
+  nombres_insumos_producto <- filter(top_correlations, Producto == i)$Insumo
+  
+  insumos_producto  <- insumos_andino %>%
+    filter(Insumo %in% nombres_insumos_producto) %>%
+    group_by(Fecha, Insumo) %>%
+    summarize(Promedio = mean(`Precio promedio`))
+  
+  insumos_producto <- insumos_producto %>%
+    group_by(Insumo) %>%
+    mutate(precio_normalizado = scale(Promedio))
+  
+  producto$Fecha <- as.Date(producto$Fecha)
+  insumos_producto$Fecha <- as.Date(insumos_producto$Fecha)
+  h <- ggplot() + 
+    geom_line(data = producto, aes(x = Fecha, y = precio_normalizado, color = "Producto")) + 
+    geom_line(data = insumos_producto, aes(x = Fecha, y = precio_normalizado, group = Insumo, color = Insumo)) +
+    labs(title = paste("Precio de ",i, " vs Precio insumos"),
+         y = "Precio") +
+    scale_x_date(date_labels = "%Y-%m-%d")
+  # Print the plot
+  print(h)
+}
 
-#TODO:  hacer unas grafiquitas que sea en un mismo plot el precio del producto y el de los 3-5 insumos en el tiempo
 
 ##########################################################################
 ###################     SOME PLOTS     ##########################
@@ -436,8 +493,6 @@ ggplot(insumosNorm, aes(x = Fecha, y = total_normalizado)) +
   geom_smooth(data = producto2Norm, aes(x = Fecha, y = precio_normalizado), color = "green") +
   geom_smooth(data = producto3Norm, aes(x = Fecha, y = precio_normalizado), color = "red") +
   labs(title = "Nitrogeno Socorro [Azul] vs Precio de Producto (Suavizado) [Rojo]", x = "Fecha", y = "Y")
-
-
 
 
 
